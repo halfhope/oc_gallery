@@ -4,7 +4,6 @@
 */
 class ControllerAlbumSettings extends Controller {
 	private $error = array();
- 
 	public function index() {
 		$this->language->load('album/index'); 
 		$this->document->setTitle($this->language->get('section_settings'));
@@ -52,6 +51,7 @@ class ControllerAlbumSettings extends Controller {
 		$this->data['config_gallery_include_lightbox'] 			= $this->config->get('config_gallery_include_lightbox');
 		$this->data['config_gallery_include_fancybox'] 			= $this->config->get('config_gallery_include_fancybox');
 		$this->data['config_gallery_include_jstabs'] 			= $this->config->get('config_gallery_include_jstabs');
+		$this->data['config_gallery_include_lazyload'] 			= $this->config->get('config_gallery_include_lazyload');
 		$this->data['config_galleries_seo_name'] 				= $this->config->get('config_galleries_seo_name');
 		$this->data['config_galleries_include_seo_path'] 		= $this->config->get('config_galleries_include_seo_path');
 		$this->data['config_gallery_module_category_layout_id'] = $this->config->get('config_gallery_module_category_layout_id');
@@ -78,6 +78,7 @@ class ControllerAlbumSettings extends Controller {
 		$this->data['entry_gallery_include_lightbox'] 			= $this->language->get('entry_gallery_include_lightbox');
 		$this->data['entry_gallery_include_fancybox'] 			= $this->language->get('entry_gallery_include_fancybox');
 		$this->data['entry_gallery_include_jstabs'] 			= $this->language->get('entry_gallery_include_jstabs');
+		$this->data['entry_gallery_include_lazyload'] 			= $this->language->get('entry_gallery_include_lazyload');
 		//meta
 		$this->data['entry_title'] 			= $this->language->get('entry_title');
 		$this->data['entry_h1'] 			= $this->language->get('entry_h1');

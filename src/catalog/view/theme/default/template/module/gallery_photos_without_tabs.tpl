@@ -7,7 +7,6 @@
   <div class="gallery">
     <script>
       $(document).ready(function() {
-        $('#gallery_tabs<?php echo $no_conflict; ?> a').tabs();
         <?php 
           switch ($album['album_data']['js_lib_type']) {
             case 0: 

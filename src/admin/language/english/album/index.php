@@ -71,6 +71,7 @@ $_['entry_gallery_include_colorbox'] 	= 'Insert a file colorbox: <span class="he
 $_['entry_gallery_include_lightbox'] 	= 'Insert a file lightbox: <span class="help">If header.tpl already included lightbox, then switch it off.</span>';
 $_['entry_gallery_include_fancybox'] 	= 'Insert a file fancybox: <span class="help">If header.tpl already included fancybox, then switch it off.</span>';
 $_['entry_gallery_include_jstabs'] 		= 'Insert a file tabs.js: <span class="help">If header.tpl already included tabs.js, then switch it off.</span>';
+$_['entry_gallery_include_lazyload']	= 'Insert a file lazyload.js: <span class="help">If header.tpl already included lazyload.js, then switch it off.</span>';
 $_['entry_category_layout']   		= 'Category layout: <span class="help">Necessary in order to be able to display modules on a specific category page.</span>';
 $_['entry_product_layout']   		= 'Product layout: <span class="help">Necessary in order to be able to display modules on a specific category page.</span>';
 
@@ -81,8 +82,9 @@ $_['text_success_modules'] 					= 'Modules saved successfully.';
 $_['text_success_deleted'] 					= 'Selected objects were successfully removed.';
 $_['text_success_copied'] 					= 'Selected objects have been copied successfully.';
 $_['text_success_settings'] 				= 'Settings saved successfully.';
+$_['text_success_updated'] 					= 'Module succesfully updated.';
 $_['text_error_no_albums'] 					= 'No galleries. To create a module, first create a gallery.';
-$_['text_error_check_form'] 					= 'Fill in all fields.';
+$_['text_error_check_form'] 				= 'Fill in all fields.';
 
 //Tabs
 $_['tab_general'] 	= 'Common';
@@ -111,6 +113,7 @@ $_['button_text_copy'] 		= 'Copy';
 $_['button_text_edit'] 		= 'Edit';
 $_['button_text_delete'] 	= 'Delete';
 $_['button_text_cancel'] 	= 'Cancel';
+
 //Modules
 
 // Text
@@ -126,6 +129,7 @@ $_['text_column_right']   = 'The right column';
 $_['entry_module_name']         = 'Name of module:<span class="help">The name for the administrative part.</span>';
 $_['entry_module_header']         = 'Title of the module:';
 $_['entry_show_gallery_album_description']         = 'Show description of the gallery on the gallery page:';
+$_['entry_use_lazyload']         = 'Use LazyLoad:<span class="help">Lazy load images on the gallery page.</span>';
 $_['entry_show_module_header']         = 'Show title';
 $_['entry_module_type']         = 'Module Type:';
 $_['entry_album_list']         = 'List of items:';

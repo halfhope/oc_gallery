@@ -145,6 +145,20 @@
                 <?php echo $text_no; ?>
                 <?php } ?></td>
               </tr>
+              <tr class="s_img5">
+                <td><?php echo $entry_use_lazyload; ?></td>
+                <td><?php if ($album_data['use_lazyload']) { ?>
+                <input type="radio" name="album_data[use_lazyload]" value="1" checked="checked" />
+                <?php echo $text_yes; ?>
+                <input type="radio" name="album_data[use_lazyload]" value="0" />
+                <?php echo $text_no; ?>
+                <?php } else { ?>
+                <input type="radio" name="album_data[use_lazyload]" value="1" />
+                <?php echo $text_yes; ?>
+                <input type="radio" name="album_data[use_lazyload]" value="0" checked="checked" />
+                <?php echo $text_no; ?>
+                <?php } ?></td>
+              </tr>
               </table>
               <h2><?php echo $text_album_data ?></h2>
               <table class="form">

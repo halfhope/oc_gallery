@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modification>
-	<id>PhotoGallery v1.1 SEO urls</id>
-	<version>1.1</version>
+	<id>PhotoGallery v1.2 SEO urls</id>
+	<version>1.2</version>
 	<vqmver></vqmver>
 	<author>Shashakhmetov Talgat[talgatks@gmail.com]</author>
 	<file name="catalog/controller/common/seo_pro.php">

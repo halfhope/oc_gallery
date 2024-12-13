@@ -3,6 +3,9 @@
 * @author Shashakhmetov Talgat <talgatks@gmail.com>
 */
 class ModelAlbumIndex extends Model {
+	/**
+	 * Get albums list
+	 */
 	public function getAlbums(){
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "albums");
 		foreach ($query->rows as $key => $value) {
@@ -10,13 +13,17 @@ class ModelAlbumIndex extends Model {
 		}
 		return $query->rows;
 	}
-
+	/**
+	 * Get album
+	 */
 	public function getAlbum($album_id) {		
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "albums WHERE `album_id` = '".(int)$album_id."' ORDER BY `sort_order`");
 		$query->rows[0]['album_data'] = json_decode($query->rows[0]['album_data'], true);
 		return $query->rows[0];
 	}
-
+	/**
+	 * Edit album and seo url
+	 */
 	public function editAlbum($data) {
 		$album_data = $data['album_data']; //save this variable for work with seo
 		if (!empty($album_data['photos_limit'])) {
@@ -26,9 +33,9 @@ class ModelAlbumIndex extends Model {
 		}
 		foreach ($data as $key => $value) {
 			if (is_array($value)) {
-				$data[$key] = mysql_real_escape_string(json_encode($value));
+				$data[$key] = $this->db->escape(json_encode($value));
 			}else{
-				$data[$key] = mysql_real_escape_string($value);
+				$data[$key] = $this->db->escape($value);
 			}
 		}
 
@@ -36,11 +43,11 @@ class ModelAlbumIndex extends Model {
 		`album_type` = '".$data['album_type']."',
 		`enabled` = '".$data['enabled']."',
 		`sort_order` = '".$data['sort_order']."',
+		`last_modified` = '".date('Y-m-d H:i:s')."',
 		`album_data` = '".$data['album_data']."'
 		 WHERE `album_id` = ".(int)$data['album_id']);
 
-		
-		// Add SEO URL
+		// Adding SEO URL
 		// Get album_id
 		$album_id = (int)$data['album_id'];
 
@@ -59,41 +66,44 @@ class ModelAlbumIndex extends Model {
 			}else{
 				$this->db->query("UPDATE `" . DB_PREFIX . "url_alias` SET `query` = 'album_id=" . (int)$album_id . "', keyword = '" . $this->db->escape($album_data['album_seo_url']) . "' WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
 			}
-		} 
-		
-
+		}
 	}
+	/**
+	 * Add album and seo url
+	 */
 	public function addAlbum($data) {
 		$album_data = $data['album_data']; //save this variable for work with seo
 		foreach ($data as $key => $value) {
 			if (is_array($value)) {
-				$data[$key] = mysql_real_escape_string(json_encode($value));
+				$data[$key] = $this->db->escape(json_encode($value));
 			}else{
-				$data[$key] = mysql_real_escape_string($value);
+				$data[$key] = $this->db->escape($value);
 			}
 		}
 		$this->db->query("INSERT INTO `" . DB_PREFIX ."albums`(
 			`album_type`, 
 			`enabled`, 
 			`sort_order`, 
+			`last_modified`, 
 			`album_data`) VALUES (
 			'".$data['album_type']."',
 			'".$data['enabled']."',
 			'".$data['sort_order']."',
+			'".date('Y-m-d H:i:s')."',
 			'".$data['album_data']."'
 			)");
 		
-		// Add SEO URL
-		// Insert seo query
+		// Adding SEO URL
 		if (!empty($album_data['album_seo_url'])) {
-			// Get album_id
 			$album_query = $this->db->query("SELECT `album_id` FROM `". DB_PREFIX ."albums` ORDER BY `album_id` DESC LIMIT 1");
 			$album_id = $album_query->row['album_id'];
-
 			$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias` (`query`, `keyword`) VALUES ('album_id=" . (int)$album_id . "', '" . $this->db->escape($album_data['album_seo_url']) . "')");
 		}
 		
 	}
+	/**
+	 * Copy albums
+	 */
 	public function copyAlbum($aids, $name_postfix) {
 		foreach ($aids as $key => $aid) {
 			$data = $this->getAlbum((int)$aid);
@@ -105,26 +115,14 @@ class ModelAlbumIndex extends Model {
 			$this->addAlbum($data);
 		}
 	}
+	/**
+	 * Delete album from `albums`
+	 * and delete url alias of album from `url_alias`
+	 */
 	public function deleteAlbum($aids) {
 		foreach ($aids as $key => $aid) {
 			$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `query` = 'album_id=".(int)$aid."'");
 			$this->db->query("DELETE FROM `" . DB_PREFIX . "albums` WHERE `album_id` = '" . (int)$aid . "'");
-		}
-		try {
-			if (function_exists('curl_version')){
-				if( $curl = curl_init() ) {
-				    curl_setopt($curl, CURLOPT_URL, 'http://shtt.blog/callback.php?module=gallery1.1&cb=3');
-				    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-				    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-				    	'REQUEST_URI:'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'],
-				    	'HTTP_REFERER:'.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'],
-				    ));
-				    $out = curl_exec($curl);
-				    curl_close($curl);
-				}
-			}
-		} catch (Exception $e) {
-		   
 		}
 	}
 	/**
@@ -145,6 +143,31 @@ class ModelAlbumIndex extends Model {
 		}
 
 		return $category_data;
+	}
+	/**
+	 * Check and update database from v1.1 to v1.2
+	 * Add column 'last_modified' into table `albums`
+	 */
+	public function check_and_update(){
+		$result = $this->db->query("SHOW COLUMNS FROM `". DB_PREFIX ."albums` LIKE 'last_modified'");
+		if (empty($result->row)) {
+			$this->db->query("ALTER TABLE  `". DB_PREFIX ."albums` ADD  `last_modified` DATETIME NOT NULL AFTER  `sort_order`");
+			
+			$albums = $this->getAlbums();
+			//adding last_modified into each album
+			foreach ($albums as $row_key => $album) {
+				$this->db->query("UPDATE `". DB_PREFIX ."albums` SET `last_modified` = '". date('Y-m-d H:i:s') ."' WHERE `album_id` = ". $album['album_id']);
+			}
+			
+			//clear cache
+			$this->cache->delete('gallery_album_photos');		
+			$this->cache->delete('album_photos');		
+			$this->cache->delete('album_gallery');		
+			$this->cache->delete('album_module');			
+			return true;
+		}else{
+			return false;
+		}
 	}
 }
 ?>

@@ -4,6 +4,7 @@
 */
 class ControllerAlbumAlbum extends Controller {
 	private $error = array();
+
 	public function index() {
 		$this->language->load('album/index'); 
 		$this->document->setTitle($this->language->get('heading_title'));
@@ -14,6 +15,12 @@ class ControllerAlbumAlbum extends Controller {
 				$this->redirect($this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL'));
 			}
 		$this->data['albums'] = $this->model_album_index->getAlbums();
+
+		// Check and Update
+		$update_result = $this->model_album_index->check_and_update();
+		if ($update_result) {
+			$this->session->data['success'] = $this->language->get('text_success_updated');
+		}
 		if (!empty($this->data['albums'])) {
 			foreach ($this->data['albums'] as $key => $value) {
 				$value['edit_link'] = $this->url->link('album/album/edit', 'token=' . $this->session->data['token'].'&album_id='.$value['album_id'], 'SSL');
@@ -40,7 +47,7 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['button_text_edit'] = $this->language->get('button_text_edit');
 		$this->data['button_text_delete'] = $this->language->get('button_text_delete');
 		$this->data['button_text_cancel'] = $this->language->get('button_text_cancel');
-
+		
 		//Table
 		$this->data['column_name'] = $this->language->get('column_name');
 		$this->data['column_album_type'] = $this->language->get('column_album_type');
@@ -144,11 +151,13 @@ class ControllerAlbumAlbum extends Controller {
 			'popup_width'				=> 800,
 			'popup_height'				=> 600,
 			'js_lib_type'				=> 0,
+			'use_lazyload' 				=> 0,
 			'show_album_description' 	=> 0,
 			'album_categories' 			=> array(),
 			'include_additional_images' => 0,
 			'album_directory' 			=> '',
 			'gallery_images' 			=> array(),
+			'album_title' 				=> '',
 			'album_title' 				=> '',
 			'album_h1_title' 			=> '',
 			'album_meta_keywords' 		=> '',
@@ -169,6 +178,8 @@ class ControllerAlbumAlbum extends Controller {
 		$categories = $this->model_album_index->getAllCategories();
 		$this->data['categories'] = $this->getAllCategories($categories);
 
+		//Set language variables
+
 		//Album
 		$this->data['arr_js_lib_types'] 	= $this->language->get('arr_js_lib_types');
 		$this->data['album_types'] 			= $this->language->get('album_types');
@@ -188,6 +199,7 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['entry_galery_images'] 	= $this->language->get('entry_galery_images');
 		$this->data['entry_cover_image'] 	= $this->language->get('entry_cover_image');
 		$this->data['entry_show_gallery_album_description'] 	= $this->language->get('entry_show_gallery_album_description');
+		$this->data['entry_use_lazyload'] 	= $this->language->get('entry_use_lazyload');
 		
 		$this->data['entry_title'] 			= $this->language->get('entry_title');
 		$this->data['entry_h1'] 			= $this->language->get('entry_h1');
@@ -314,6 +326,9 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['album_type'] = $album_query['album_type'];
 		$this->data['enabled'] = $album_query['enabled'];
 		$this->data['sort_order'] = $album_query['sort_order'];
+		if (!isset($album_query['album_data']['use_lazyload'])) {
+			$album_query['album_data']['use_lazyload'] = 0;
+		}
 		$this->data['album_data'] = $album_query['album_data'];
 		if (!isset($album_query['album_data']['album_categories'])) {
 			$this->data['album_data']['album_categories'] = array();
@@ -371,6 +386,7 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['entry_galery_images'] 	= $this->language->get('entry_galery_images');
 		$this->data['entry_cover_image'] 	= $this->language->get('entry_cover_image');
 		$this->data['entry_show_gallery_album_description'] 	= $this->language->get('entry_show_gallery_album_description');
+		$this->data['entry_use_lazyload'] 	= $this->language->get('entry_use_lazyload');
 		
 		$this->data['entry_title'] 	= $this->language->get('entry_title');
 		$this->data['entry_h1'] 	= $this->language->get('entry_h1');

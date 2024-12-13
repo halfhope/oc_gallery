@@ -17,6 +17,7 @@ class ControllerModuleGallery extends Controller {
 		  `album_type` int(11) NOT NULL,
 		  `enabled` int(11) NOT NULL,
 		  `sort_order` int(11) NOT NULL,
+		  `last_modified` datetime NOT NULL,
 		  `album_data` text NOT NULL,
 		  PRIMARY KEY (`album_id`)
 		) DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
@@ -31,6 +32,7 @@ class ControllerModuleGallery extends Controller {
 		(0, 'gallery_settings', 'config_gallery_include_fancybox', '0', 0),
 		(0, 'gallery_settings', 'config_gallery_include_jstabs', '0', 0),
 		(0, 'gallery_settings', 'config_gallery_include_lightbox', '0', 0),
+		(0, 'gallery_settings', 'config_gallery_include_lazyload', '0', 0),
 		(0, 'gallery_settings', 'config_gallery_modules_cache_enabled', '0', 0),
 		(0, 'gallery_settings', 'config_gallery_module_category_layout_id', '0', 0),
 		(0, 'gallery_settings', 'config_gallery_module_product_layout_id', '0', 0),

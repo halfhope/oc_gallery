@@ -195,6 +195,17 @@ class ControllerGalleryPhotos extends controller{
                     $album['js_lib_type_text'] = 'fancybox';
                 break;
             }
+            
+            //lazyload
+            if ($this->config->get('config_gallery_include_lazyload')) {
+                $album['scripts'][] = 'catalog/view/javascript/jquery/jquery.lazyload.min.js';
+            }
+            if (!isset($album['album_data']['use_lazyload'])) {
+                $album['album_data']['use_lazyload'] = false;
+            }
+            #$album['album_data']['lazyload_image'] = $this->model_tool_image->resize('lazyload_image.jpg', $album['album_data']['thumb_width'], $album['album_data']['thumb_height']);
+            $album['album_data']['lazyload_image'] = '#';
+
             $this->cacher['album'] = $album;
             if ($this->config->get('config_gallery_modules_cache_enabled')) {
                 $this->cache->set($cached_page_name, $this->cacher);
@@ -230,6 +241,7 @@ class ControllerGalleryPhotos extends controller{
         if (empty($galleres_title[$this->current_language_id])) {
             $galleres_title[$this->current_language_id] = $this->language->get('text_gallery_list');
         }
+
         #Добавляем хлебные крошки (обязательно)
         $this->data['breadcrumbs'] = array();
         $this->data['breadcrumbs'][] = array(
@@ -244,10 +256,17 @@ class ControllerGalleryPhotos extends controller{
         );
         $this->data['breadcrumbs'][] = array(
             'text'      => $album['album_title'],
-            'href'      => $this->url->link('gallery/gallery', 'album_id='.$album_id.(($page == 1)? '' : '&page='.$page ).$url, 'SSL'),          
+            'href'      => $this->url->link('gallery/photos', 'album_id='.$album_id. (($page == 1)? '' : '&page='.$page ).$url, 'SSL'),          
             'separator' => $this->language->get('text_separator')
         );
-        
+
+        //Добавляем Last-Modified
+        if (isset($album['last_modified']) && $album['last_modified'] != '0000-00-00 00:00:00') {
+            $this->response->addHeader('Last-Modified: '.date('r', strtotime($album['last_modified'])));
+        }else{
+            $this->response->addHeader('Last-Modified: '.date('r'));
+        }
+
         # стандартный код загрузки файла шаблона (обязательно)
 
         if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/gallery/photos.tpl')) {

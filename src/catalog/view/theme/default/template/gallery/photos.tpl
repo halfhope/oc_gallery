@@ -22,11 +22,14 @@
   </div>
   <?php endif ?>
   <div class="content">
-
   <div class="gallery">
     <script>
       $(document).ready(function() {
-        $('#gallery_tabs<?php echo $no_conflict; ?> a').tabs();
+        <?php if ($album['album_data']['use_lazyload']): ?>
+          $('img.lazy').lazyload({
+            effect:"fadeIn"
+          });
+        <?php endif ?>
         <?php 
           switch ($album['album_data']['js_lib_type']) {
             case 0: 
@@ -44,7 +47,7 @@
     <?php endif ?>
       <?php foreach ($album['images'] as $img_key => $image): ?>
         <a class="transition gallery_photo <?php echo $no_conflict; ?><?php echo $album['js_lib_type_text'] ?><?php echo $album['album_id'] ?>"  rel="<?php echo $no_conflict; ?>group<?php echo $album['album_id'] ?>" href="<?php echo $image['popup'] ?>" <?php echo (($album['album_data']['js_lib_type'] == 1)? 'data-lightbox="'.$no_conflict.$album['album_id'].'" data-title="'.$image['title'].'" ' : ''); ?>title="<?php echo $image['title'] ?>">
-          <img src="<?php echo $image['thumb'] ?>" width="<?php echo $album['album_data']['thumb_width'] ?>" height="<?php echo $album['album_data']['thumb_height'] ?>" alt="<?php echo $image['title'] ?>" />
+          <img <?php if ($album['album_data']['use_lazyload']){echo 'class="lazy" src="'.$album['album_data']['lazyload_image'].'" data-original';}else{echo 'src';} ?>="<?php echo $image['thumb'] ?>" width="<?php echo $album['album_data']['thumb_width'] ?>" height="<?php echo $album['album_data']['thumb_height'] ?>" alt="<?php echo $image['title'] ?>" />
           <span><?php echo $image['title'] ?></span>
         </a>
       <?php endforeach ?>
