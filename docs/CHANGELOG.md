@@ -11,3 +11,11 @@
 * Added the ability to display the module on a specific category or product page
 * Fixed compatibility issues with new mysqld versions
 
+#### 1.2
+
+* Fixed breadcrumbs
+* Fixed error when saving an album (mysql_real_escape_string)
+* Added XML feed (gallery sitemap) (Example)
+* Added HTTP Last-Modified headers for each gallery page
+* Enabled LazyLoad for a large number of images (Example)
+
