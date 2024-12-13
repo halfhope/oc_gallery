@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Gallery images menu</name>
+    <version>1.0</version>
+    <author>shtt.blog</author>
+    <code>shtt.blog_gallery_images</code>
+    <link>http://shtt.blog/opencart/modules/gallery_images</link>
+    <file path="admin/controller/common/menu.php">
+        <operation>
+            <search><![CDATA[
+            $data['text_information'] = $this->language->get('text_information');
+            ]]></search>
+            <add position="after"><![CDATA[
+            $this->language->load('module/gallery');
+            $data['text_gallery'] = $this->language->get('text_gallery');
+            $data['text_gallery_album']     = $this->language->get('text_gallery_album');
+            $data['text_gallery_modules']   = $this->language->get('text_gallery_modules');
+            $data['text_gallery_settings']  = $this->language->get('text_gallery_settings');
+            ]]></add>
+        </operation>
+        <operation>
+            <search><![CDATA[
+            $data['information']
+            ]]></search>
+            <add position="after"><![CDATA[
+            $data['gallery_album'] = $this->url->link('gallery/album', 'token=' . $this->session->data['token'], 'SSL');
+            $data['gallery_modules'] = $this->url->link('gallery/modules', 'token=' . $this->session->data['token'], 'SSL');
+            $data['gallery_settings'] = $this->url->link('gallery/settings', 'token=' . $this->session->data['token'], 'SSL');
+            ]]></add>
+        </operation>
+    </file>
+    <file path="admin/view/template/common/menu.tpl">
+        <operation>
+            <search><![CDATA[<li><a href="<?php echo $information; ?>"><?php echo $text_information; ?></a></li>]]></search>
+            <add position="after"><![CDATA[
+      <li><a class="parent"><?php echo $text_gallery; ?></a>
+        <ul>
+          <li><a href="<?php echo $gallery_album; ?>"><?php echo $text_gallery_album; ?></a></li>
+          <li><a href="<?php echo $gallery_modules; ?>"><?php echo $text_gallery_modules; ?></a></li>
+          <li><a href="<?php echo $gallery_settings; ?>"><?php echo $text_gallery_settings; ?></a></li>
+        </ul>
+      </li>
+            ]]></add>
+        </operation>
+        
+    </file>
+</modification>
