@@ -5,16 +5,47 @@
 class ControllerModuleGallery extends Controller {
 	private $cacher = array();
 	private $current_language_id;
-
+	/*
+	* Faster check category_id and product_id
+	*/
+	private function checkModuleLayout($setting){
+		$layout_id = $setting['layout_id'];
+		if ($layout_id == $this->config->get('config_gallery_module_category_layout_id')) {
+			if (!empty($setting['album_show_on_categories'])) {
+				if (in_array($this->getCategoryId(), $setting['album_show_on_categories'])) {
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				return true;
+			}
+		}elseif ($layout_id == $this->config->get('config_gallery_module_product_layout_id')) {
+			if (!empty($setting['album_show_on_products'])) {
+				if (in_array($this->getProductId(), $setting['album_show_on_products'])) {
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				return true;
+			}	
+		}
+		return true;
+	}
 	protected function index($setting) {
 		$this->data['microtime'] = microtime(true);
 		$this->load->model('catalog/product');
 		$this->load->model('tool/image');
 		$this->load->model('catalog/gallery');
-
-		$this->current_language_id = $this->config->get('config_language_id');
+		$this->document->addStyle('catalog/view/theme/default/stylesheet/photo_gallery.manager.css');
+ 		$this->current_language_id = $this->config->get('config_language_id');
 		$module_cache_name = md5($setting['layout_id'].$setting['position'].$setting['name'].$this->current_language_id);
-		
+
+		if (!$this->checkModuleLayout($setting)) {
+			return;
+		}
+
 		$this->cacher = $this->cache->get('album_module.'.$module_cache_name);
 		if (empty($this->cacher) || (!$this->config->get('config_gallery_modules_cache_enabled'))) {
 			$this->cacher['galleries_link'] = $this->url->link('gallery/gallery');
@@ -27,38 +58,46 @@ class ControllerModuleGallery extends Controller {
 					if (!empty($setting['album_list'])) {
 						$albums = array();
 						foreach ($setting['album_list'] as $key => $album_id) {
-							$albums[$key] = $this->model_catalog_gallery->getAlbum($album_id);
-							//Add data
-							if ($setting['show_counter']) {
-								$cached = $this->cache->get('album_photos.'.md5($album_id.'0'));
-								if (!empty($cached)) {
-									$albums[$key]['images'] = $cached;	
-								}else{
-									$cached_data = $this->getAlbumImages($album_id, 0);
-									$this->cache->set('album_photos.'.md5($album_id.'0'), $cached_data);
-									$albums[$key]['images'] = $cached_data;
+							$pre_album = $this->model_catalog_gallery->getAlbum($album_id);
+							if (!empty($pre_album)) {
+								$albums[$key] = $pre_album;
+								//Add data
+								if ($setting['show_counter']) {
+									$cached = $this->cache->get('album_photos.'.md5($album_id.'0'));
+									if (!empty($cached)) {
+										$albums[$key]['images'] = $cached;	
+									}else{
+										$cached_data = $this->getAlbumImages($album_id, 0);
+										$this->cache->set('album_photos.'.md5($album_id.'0'), $cached_data);
+										$albums[$key]['images'] = $cached_data;
+									}
 								}
-							}
-							//counter
-							$album_name_postfix = ($setting['show_counter'] ? ' ('.count($albums[$key]['images']).')' : '');
+								//counter
+								$album_name_postfix = ($setting['show_counter'] ? ' ('.count($albums[$key]['images']).')' : '');
 
-							$albums[$key]['album_name'] = $albums[$key]['album_data']['album_name'][$this->current_language_id].$album_name_postfix;
-							$albums[$key]['album_link'] = $this->url->link('gallery/photos', 'album_id='.$albums[$key]['album_id']);
-							if (!empty($albums[$key]['album_data']['cover_image']['image'])) {
-								$albums[$key]['album_data']['cover_image']['thumb'] = $this->model_tool_image->resize($albums[$key]['album_data']['cover_image']['image'], $setting['cover_image_width'], $setting['cover_image_height']);
-							}else{
-								$albums[$key]['album_data']['cover_image']['thumb'] = $this->model_tool_image->resize('no_image.jpg', $setting['cover_image_width'], $setting['cover_image_height']);
-							}
+								$albums[$key]['album_name'] = $albums[$key]['album_data']['album_name'][$this->current_language_id].$album_name_postfix;
+								$albums[$key]['album_link'] = $this->url->link('gallery/photos', 'album_id='.$albums[$key]['album_id']);
+								if (!empty($albums[$key]['album_data']['cover_image']['image'])) {
+									$albums[$key]['album_data']['cover_image']['thumb'] = $this->model_tool_image->resize($albums[$key]['album_data']['cover_image']['image'], $setting['cover_image_width'], $setting['cover_image_height']);
+								}else{
+									$albums[$key]['album_data']['cover_image']['thumb'] = $this->model_tool_image->resize('no_image.jpg', $setting['cover_image_width'], $setting['cover_image_height']);
+								}
 
-							$this->cacher['show_album_galleries_link'] = $setting['show_album_galleries_link'];
-							$this->cacher['album_galleries_link_text'] = $setting['album_galleries_link_text'];
+								$this->cacher['cover_image_width'] = $setting['cover_image_width'];
+								$this->cacher['cover_image_height'] = $setting['cover_image_height'];
+								
+								$this->cacher['show_album_galleries_link'] = $setting['show_album_galleries_link'];
+								$this->cacher['album_galleries_link_text'] = $setting['album_galleries_link_text'];
+							}
 						}
 						$this->cacher['albums'] = $albums;
 						if ($setting['show_covers']) {
-							$this->setTemplate('gallery_gallery');
+							$this->setTemplate('gallery_gallery_grid');
 						}else{
 							$this->setTemplate('gallery_gallery_list');
 						}
+					}else{
+						return;
 					}
 
 				break;
@@ -129,13 +168,21 @@ class ControllerModuleGallery extends Controller {
 							}
 							$this->cacher['albums'] = $albums;
 						}
+						
+						if (count($this->cacher['albums']) > 1 ) {
+							$this->setTemplate('gallery_photos_with_tabs');
+						}else{
+							$this->cacher['album'] = end($this->cacher['albums']);
+							$this->setTemplate('gallery_photos_without_tabs');
+						}
+					}else{
+						return;
 					}
-					$this->setTemplate('gallery_photos');
 				break;
 			}
 			$this->cache->set('album_module.'.$module_cache_name, $this->cacher);
 		}
-			
+
 		if (!empty($this->cacher['albums']) && $this->config->get('config_gallery_include_jstabs') && count($this->cacher['albums']) >= 2) {
 			$this->document->addScript('catalog/view/javascript/jquery/tabs.js');
 		}
@@ -150,12 +197,14 @@ class ControllerModuleGallery extends Controller {
 				$this->document->addStyle($style);
 			}
 		}
-		$this->setTemplate($this->cacher['template_name']);
+		
 		$this->data['no_conflict'] = substr(md5(rand(0, 99)), 20);
 		$this->data['microtime'] = microtime(true) - $this->data['microtime'];
+		
 		foreach ($this->cacher as $key => $value) {
 			$this->data[$key] = $value;
 		}
+		$this->setTemplate($this->cacher['template_name']);
 		$this->render();		
 	}
 	private function setTemplate($template){
@@ -253,90 +302,12 @@ class ControllerModuleGallery extends Controller {
 		}
 		return $result;
 	}
+	private function getProductId(){
+		return $this->request->get['product_id'];
+	}
+	private function getCategoryId(){
+		$path = explode('_', (string)$this->request->get['path']);
+		return end($path);
+	}
 }
-// array (size=2)
-//   0 => 
-//     array (size=5)
-//       'album_id' => string '21' (length=2)
-//       'album_type' => string '0' (length=1)
-//       'enabled' => string '1' (length=1)
-//       'sort_order' => string '0' (length=1)
-//       'album_data' => 
-//         array (size=15)
-//           'cover_image' => 
-//             array (size=1)
-//               'image' => string 'data/background_manager/background/881.png' (length=42)
-//           'thumb_width' => string '180' (length=3)
-//           'thumb_height' => string '120' (length=3)
-//           'popup_width' => string '800' (length=3)
-//           'popup_height' => string '600' (length=3)
-//           'album_seo_url' => string 'daty' (length=4)
-//           'include_additional_images' => string '1' (length=1)
-//           'album_categories' => 
-//             array (size=4)
-//               0 => string '26' (length=2)
-//               1 => string '18' (length=2)
-//               2 => string '29' (length=2)
-//               3 => string '24' (length=2)
-//           'album_directory' => string '' (length=0)
-//           'album_name' => 
-//             array (size=2)
-//               5 => string 'РќРѕРІР°СЏ С„РѕС‚РѕРіР°Р»РµСЂРµСЏ' (length=33)
-//               1 => string 'РќРѕРІР°СЏ С„РѕС‚РѕРіР°Р»РµСЂРµСЏ' (length=33)
-//           'album_title' => 
-//             array (size=2)
-//               5 => string '' (length=0)
-//               1 => string '' (length=0)
-//           'album_h1_title' => 
-//             array (size=2)
-//               5 => string '' (length=0)
-//               1 => string '' (length=0)
-//           'album_keywords' => 
-//             array (size=2)
-//               5 => string '' (length=0)
-//               1 => string '' (length=0)
-//           'album_meta_description' => 
-//             array (size=2)
-//               5 => string '' (length=0)
-//               1 => string '' (length=0)
-//           'album_description' => 
-//             array (size=2)
-//               5 => string '' (length=0)
-//               1 => string '' (length=0)
-
-// array (size=22)
-//   'name' => string 'РќРѕРІС‹Р№ РјРѕРґСѓР»СЊ' (length=23)
-//   'header' => 
-//     array (size=2)
-//       5 => string 'РќРѕРІС‹Р№ РјРѕРґСѓР»СЊ' (length=23)
-//       1 => string 'РќРѕРІС‹Р№ РјРѕРґСѓР»СЊ' (length=23)
-//   'show_header' => 
-//     array (size=2)
-//       5 => string '1' (length=1)
-//       1 => string '1' (length=1)
-//   'module_type' => string '0' (length=1)
-//   'album_list' => 
-//     array (size=2)
-//       0 => string '21' (length=2)
-//       1 => string '22' (length=2)
-//   'show_covers' => string '1' (length=1)
-//   'cover_image_width' => string '180' (length=3)
-//   'cover_image_height' => string '120' (length=3)
-//   'show_counter' => string '1' (length=1)
-//   'show_album_galleries_link' => string '1' (length=1)
-//   'photo_album_list' => 
-//     array (size=2)
-//       0 => string '21' (length=2)
-//       1 => string '22' (length=2)
-//   'show_album_description' => string '1' (length=1)
-//   'gallery_thumb_image_width' => string '180' (length=3)
-//   'gallery_thumb_image_height' => string '120' (length=3)
-//   'gallery_popup_image_width' => string '800' (length=3)
-//   'gallery_popup_image_height' => string '600' (length=3)
-//   'photos_limit' => string '12' (length=2)
-//   'show_album_link' => string '1' (length=1)
-//   'layout_id' => string '1' (length=1)
-//   'position' => string 'column_left' (length=11)
-//   'status' => string '1' (length=1)
-//   'sort_order' => string '0' (length=1)
 ?>

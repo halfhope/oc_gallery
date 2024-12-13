@@ -17,14 +17,17 @@ $_['arr_js_lib_types'][] = 'FancyBox';
 
 //sql layout names
 $_['text_layout_galleries'] = 'Galleries';
-$_['text_layout_galleries'] = 'Photos';
+$_['text_layout_photos'] = 'Photos';
 
 //Image manager
 $_['text_image_manager'] = 'Image Manager';
 
-$_['entry_album_name'] 		= 'Gallery''s Title:';
-$_['entry_album_type'] 		= 'Gallery''s Type:';
+$_['entry_album_name'] 		= 'Gallery\'s Title:';
+$_['entry_album_seo_name'] 		= 'SEO URL: <span class="help">Must be unique throughout the system.</span>';
+$_['entry_album_type'] 		= 'Gallery\'s Type:';
 $_['entry_cover_image'] 		= 'Gallery cover:';
+$_['entry_gallery_photos_limit'] 		= 'Photos limit on the gallery\'s page: <span class="help">0 - Without limit (show all)</span>';
+$_['entry_gallery_show_limiter'] 		= 'Show limiter:';
 $_['entry_thumb_size'] 		= 'Size small images on the gallery page (Width x Height):';
 $_['entry_thumb_size_mod'] 		= 'Size small images on the module (Width x Height):';
 $_['entry_popup_size'] 		= 'Size pop-up images on the gallery page (Width x Height):';
@@ -46,19 +49,30 @@ $_['entry_album_status'] 		= 'Status:<span class="help">Even after turning off t
 $_['entry_sort_order'] 			= 'Sort order:';
 $_['entry_gallery_cover_image_dimension'] 			= 'Size cover images in the galleries section:';
 $_['entry_gallery_show_counter'] 			= 'Show number of images of each gallery page galleries:';
+$_['entry_gallery_show_description'] 			= 'Show galleries description:';
 
+$_['entry_module_category'] 		= 'Show on category: <span class="help">If you want the module to be displayed in all categories - leave blank.</span>';
+$_['entry_module_product'] 			= 'Show on product: <span class="help">If you want the module to be displayed on the pages of all the goods - leave blank.</span>';
 // h2
 $_['text_album_page_settings'] = 'Settings for individual page gallery';
 $_['text_album_data']			= 'Photos';
+$_['text_js_library_settings']	= 'Settings JavaScript libraries';
+$_['text_albums_settings']		= 'Settings section galleries';
+$_['text_general_settings']		= 'General settings';
+$_['text_modules_settings']		= 'Modules';
 
 //Settings
 $_['entry_enable_full_cache']   = 'Full caching: <span class="help">This will reduce the number of requests to the database.</span>';
-$_['entry_js_library']   		= 'JS библиотека галереи:';
+$_['entry_js_library']   		= 'JS library gallery:';
+$_['entry_galleries_include_seo_path'] 	= 'Include into seo url galleries section:';
+$_['entry_galleries_seo_name'] 		= 'Galleries page SEO URL: <span class="help">Must be unique throughout the system.</span>';
 
 $_['entry_gallery_include_colorbox'] 	= 'Insert a file colorbox: <span class="help">If header.tpl already included colorbox, then switch it off.</span>';
 $_['entry_gallery_include_lightbox'] 	= 'Insert a file lightbox: <span class="help">If header.tpl already included lightbox, then switch it off.</span>';
 $_['entry_gallery_include_fancybox'] 	= 'Insert a file fancybox: <span class="help">If header.tpl already included fancybox, then switch it off.</span>';
 $_['entry_gallery_include_jstabs'] 		= 'Insert a file tabs.js: <span class="help">If header.tpl already included tabs.js, then switch it off.</span>';
+$_['entry_category_layout']   		= 'Category layout: <span class="help">Necessary in order to be able to display modules on a specific category page.</span>';
+$_['entry_product_layout']   		= 'Product layout: <span class="help">Necessary in order to be able to display modules on a specific category page.</span>';
 
 //Messages 
 $_['text_success_edited'] 					= 'Gallery successfully edited and saved.';
@@ -75,8 +89,8 @@ $_['tab_general'] 	= 'Common';
 $_['tab_data'] 		= 'Data';
 
 //Table
-$_['column_name'] 			= 'Gallery''s Title:';
-$_['column_album_type'] 	= 'Gallery''s Type:';
+$_['column_name'] 			= 'Gallery\'s Title:';
+$_['column_album_type'] 	= 'Gallery\'s Type:';
 $_['column_enabled'] 		= 'Status:';
 $_['column_sort_order'] 	= 'Sort order:';
 $_['column_action'] 		= 'Action:';

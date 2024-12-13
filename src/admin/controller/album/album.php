@@ -121,6 +121,7 @@ class ControllerAlbumAlbum extends Controller {
 			if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validatePerms()) {
 				$this->session->data['success'] = $this->language->get('text_success_added');
 				$this->model_album_index->addAlbum($this->request->post);				
+				$this->cache->delete('seo_pro');
 				$this->redirect($this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL'));
 			}
 		$this->load->model('localisation/language');
@@ -135,20 +136,24 @@ class ControllerAlbumAlbum extends Controller {
 			$album_names[$language['language_id']] = $this->language->get('text_new_album');
 		}
 		$this->data['album_data'] = array(
-			'album_name'	=> $album_names,
-			'thumb_width'	=> 180,
-			'thumb_height'	=> 120,
-			'popup_width'	=> 800,
-			'popup_height'	=> 600,
-			'js_lib_type'	=> 0,
-			'show_album_description' => 0,
-			'album_categories' => array(),
+			'album_name'				=> $album_names,
+			'photos_limit'				=> 0,
+			'show_limiter'				=> 1,
+			'thumb_width'				=> 180,
+			'thumb_height'				=> 120,
+			'popup_width'				=> 800,
+			'popup_height'				=> 600,
+			'js_lib_type'				=> 0,
+			'show_album_description' 	=> 0,
+			'album_categories' 			=> array(),
 			'include_additional_images' => 0,
-			'album_directory' => '',
-			'gallery_images' => array(),
-			'album_title' => '',
-			'album_h1_title' => '',
-			'album_description' => '',
+			'album_directory' 			=> '',
+			'gallery_images' 			=> array(),
+			'album_title' 				=> '',
+			'album_h1_title' 			=> '',
+			'album_meta_keywords' 		=> '',
+			'album_meta_description' 	=> '',
+			'album_description' 		=> '',
 		);
 		//	'album_seo_url' => ''
 		$this->data['enabled'] = 1;
@@ -164,8 +169,6 @@ class ControllerAlbumAlbum extends Controller {
 		$categories = $this->model_album_index->getAllCategories();
 		$this->data['categories'] = $this->getAllCategories($categories);
 
-		//Set language variables
-
 		//Album
 		$this->data['arr_js_lib_types'] 	= $this->language->get('arr_js_lib_types');
 		$this->data['album_types'] 			= $this->language->get('album_types');
@@ -173,7 +176,10 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['text_image_manager'] 	= $this->language->get('text_image_manager');
 		
 		$this->data['entry_album_name'] 	= $this->language->get('entry_album_name');
+		$this->data['entry_album_seo_name'] = $this->language->get('entry_album_seo_name');
 		$this->data['entry_album_type'] 	= $this->language->get('entry_album_type');
+		$this->data['entry_gallery_photos_limit'] 	= $this->language->get('entry_gallery_photos_limit');
+		$this->data['entry_gallery_show_limiter'] 	= $this->language->get('entry_gallery_show_limiter');
 		$this->data['entry_thumb_size'] 	= $this->language->get('entry_thumb_size');
 		$this->data['entry_popup_size'] 	= $this->language->get('entry_popup_size');
 		$this->data['entry_category_list'] 	= $this->language->get('entry_category_list');
@@ -183,8 +189,10 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['entry_cover_image'] 	= $this->language->get('entry_cover_image');
 		$this->data['entry_show_gallery_album_description'] 	= $this->language->get('entry_show_gallery_album_description');
 		
-		$this->data['entry_title'] 	= $this->language->get('entry_title');
-		$this->data['entry_h1'] 	= $this->language->get('entry_h1');
+		$this->data['entry_title'] 			= $this->language->get('entry_title');
+		$this->data['entry_h1'] 			= $this->language->get('entry_h1');
+		$this->data['entry_meta_keywords'] 	= $this->language->get('entry_meta_keywords');
+		$this->data['entry_meta_description'] 	= $this->language->get('entry_meta_description');
 		$this->data['entry_description'] 	= $this->language->get('entry_description');
 		$this->data['entry_album_status'] 	= $this->language->get('entry_album_status');
 		$this->data['entry_sort_order'] 	= $this->language->get('entry_sort_order');
@@ -287,9 +295,13 @@ class ControllerAlbumAlbum extends Controller {
 			if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validatePerms()) {
 				$this->session->data['success'] = $this->language->get('text_success_edited');
 				$this->model_album_index->editAlbum($this->request->post);
+
 				$this->cache->delete('gallery_album_photos');		
 				$this->cache->delete('album_photos');		
+				$this->cache->delete('album_gallery');		
 				$this->cache->delete('album_module');		
+				$this->cache->delete('seo_pro');		
+				
 				$this->redirect($this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL'));
 			}
 		$this->load->model('localisation/language');
@@ -340,8 +352,6 @@ class ControllerAlbumAlbum extends Controller {
 		$categories = $this->model_album_index->getAllCategories();
 		$this->data['categories'] = $this->getAllCategories($categories);
 
-		//Set language variables
-
 		//Album
 		$this->data['arr_js_lib_types'] 	= $this->language->get('arr_js_lib_types');
 		$this->data['album_types'] = $this->language->get('album_types');
@@ -349,7 +359,10 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['text_image_manager'] 	= $this->language->get('text_image_manager');
 		
 		$this->data['entry_album_name'] 	= $this->language->get('entry_album_name');
+		$this->data['entry_album_seo_name'] = $this->language->get('entry_album_seo_name');
 		$this->data['entry_album_type'] 	= $this->language->get('entry_album_type');
+		$this->data['entry_gallery_photos_limit'] 	= $this->language->get('entry_gallery_photos_limit');
+		$this->data['entry_gallery_show_limiter'] 	= $this->language->get('entry_gallery_show_limiter');
 		$this->data['entry_thumb_size'] 	= $this->language->get('entry_thumb_size');
 		$this->data['entry_popup_size'] 	= $this->language->get('entry_popup_size');
 		$this->data['entry_category_list'] 	= $this->language->get('entry_category_list');
@@ -362,6 +375,8 @@ class ControllerAlbumAlbum extends Controller {
 		$this->data['entry_title'] 	= $this->language->get('entry_title');
 		$this->data['entry_h1'] 	= $this->language->get('entry_h1');
 		$this->data['entry_description'] 	= $this->language->get('entry_description');
+		$this->data['entry_meta_keywords'] 	= $this->language->get('entry_meta_keywords');
+		$this->data['entry_meta_description'] 	= $this->language->get('entry_meta_description');
 		$this->data['entry_album_status'] 	= $this->language->get('entry_album_status');
 		$this->data['entry_sort_order'] 	= $this->language->get('entry_sort_order');
 		$this->data['entry_js_library'] = $this->language->get('entry_js_library');

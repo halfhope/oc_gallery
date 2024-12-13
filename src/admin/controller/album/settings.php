@@ -11,12 +11,31 @@ class ControllerAlbumSettings extends Controller {
 		$this->document->addStyle('view/stylesheet/photo_gallery.manager.css');
 		$this->load->model('album/index');
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+			
 			$this->load->model('setting/setting');
 			$this->session->data['success'] = $this->language->get('text_success_settings');
 			$this->model_setting_setting->editSetting('gallery_settings', $this->request->post);
+
+			// Add SEO URL
+			// Get seo query
+			$seo_query = $this->db->query("SELECT * FROM `". DB_PREFIX ."url_alias` WHERE `query` = 'gallery/gallery' LIMIT 1");
+			// (Check) and (update if exists) or (delete if exists and empty)
+			if (empty($seo_query->row)) {
+				if ($this->request->post['config_galleries_seo_name']) {
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias` (`query`, `keyword`) VALUES ('gallery/gallery', '" . $this->db->escape($this->request->post['config_galleries_seo_name']) . "')");
+				}
+			}else{
+				if ((!isset($this->request->post['config_galleries_seo_name'])) || (empty($this->request->post['config_galleries_seo_name']))) {
+					$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
+				}else{
+					$this->db->query("UPDATE `" . DB_PREFIX . "url_alias` SET `query` = 'gallery/gallery', keyword = '" . $this->db->escape($this->request->post['config_galleries_seo_name']) . "' WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
+				}
+			} 
 			$this->cache->delete('gallery_album_photos');		
 			$this->cache->delete('album_photos');		
+			$this->cache->delete('album_gallery');		
 			$this->cache->delete('album_module');		
+			$this->cache->delete('seo_pro');
 			$this->redirect($this->url->link('album/settings', 'token=' . $this->session->data['token'], 'SSL'));
 		}
 		$this->load->model('localisation/language');
@@ -25,24 +44,46 @@ class ControllerAlbumSettings extends Controller {
 		$this->data['heading_title'] = $this->language->get('section_settings');
 		$this->data['config_gallery_modules_cache_enabled'] = $this->config->get('config_gallery_modules_cache_enabled');
 		
-		$this->data['config_gallery_cover_image_width'] 	= $this->config->get('config_gallery_cover_image_width');
-		$this->data['config_gallery_cover_image_height'] 	= $this->config->get('config_gallery_cover_image_height');
-		$this->data['config_gallery_show_counter'] 			= $this->config->get('config_gallery_show_counter');
+		$this->data['config_gallery_cover_image_width'] 		= $this->config->get('config_gallery_cover_image_width');
+		$this->data['config_gallery_cover_image_height'] 		= $this->config->get('config_gallery_cover_image_height');
+		$this->data['config_gallery_show_counter'] 				= $this->config->get('config_gallery_show_counter');
+		$this->data['config_gallery_show_description'] 			= $this->config->get('config_gallery_show_description');
 		$this->data['config_gallery_include_colorbox'] 			= $this->config->get('config_gallery_include_colorbox');
 		$this->data['config_gallery_include_lightbox'] 			= $this->config->get('config_gallery_include_lightbox');
 		$this->data['config_gallery_include_fancybox'] 			= $this->config->get('config_gallery_include_fancybox');
 		$this->data['config_gallery_include_jstabs'] 			= $this->config->get('config_gallery_include_jstabs');
-		
-		$this->data['text_yes'] 			= $this->language->get('text_yes');
+		$this->data['config_galleries_seo_name'] 				= $this->config->get('config_galleries_seo_name');
+		$this->data['config_galleries_include_seo_path'] 		= $this->config->get('config_galleries_include_seo_path');
+		$this->data['config_gallery_module_category_layout_id'] = $this->config->get('config_gallery_module_category_layout_id');
+		$this->data['config_gallery_module_product_layout_id'] 	= $this->config->get('config_gallery_module_product_layout_id');
+
+		$this->data['config_galleries_title'] 					= $this->config->get('config_galleries_title');
+		$this->data['config_galleries_h1_title'] 				= $this->config->get('config_galleries_h1_title');
+		$this->data['config_galleries_meta_keywords'] 			= $this->config->get('config_galleries_meta_keywords');
+		$this->data['config_galleries_meta_description'] 		= $this->config->get('config_galleries_meta_description');
+		$this->data['config_galleries_description'] 			= $this->config->get('config_galleries_description');
+
+		$this->data['text_yes'] 		= $this->language->get('text_yes');
 		$this->data['text_no'] 			= $this->language->get('text_no');
+		$this->data['entry_category_layout'] 	= $this->language->get('entry_category_layout');
+		$this->data['entry_product_layout'] 	= $this->language->get('entry_product_layout');
 		
 		$this->data['entry_gallery_cover_image_dimension'] 	= $this->language->get('entry_gallery_cover_image_dimension');
 		$this->data['entry_gallery_show_counter'] 			= $this->language->get('entry_gallery_show_counter');
+		$this->data['entry_gallery_show_description'] 		= $this->language->get('entry_gallery_show_description');
+		$this->data['entry_galleries_seo_name'] 			= $this->language->get('entry_galleries_seo_name');
+		$this->data['entry_galleries_include_seo_path'] 		= $this->language->get('entry_galleries_include_seo_path');
 		
 		$this->data['entry_gallery_include_colorbox'] 			= $this->language->get('entry_gallery_include_colorbox');
 		$this->data['entry_gallery_include_lightbox'] 			= $this->language->get('entry_gallery_include_lightbox');
 		$this->data['entry_gallery_include_fancybox'] 			= $this->language->get('entry_gallery_include_fancybox');
 		$this->data['entry_gallery_include_jstabs'] 			= $this->language->get('entry_gallery_include_jstabs');
+		//meta
+		$this->data['entry_title'] 			= $this->language->get('entry_title');
+		$this->data['entry_h1'] 			= $this->language->get('entry_h1');
+		$this->data['entry_meta_keywords'] 	= $this->language->get('entry_meta_keywords');
+		$this->data['entry_meta_description'] 	= $this->language->get('entry_meta_description');
+		$this->data['entry_description'] 	= $this->language->get('entry_description');
 		
 		//Set language variables
 
@@ -58,6 +99,11 @@ class ControllerAlbumSettings extends Controller {
 
 		//Settings
 		$this->data['entry_enable_full_cache'] = $this->language->get('entry_enable_full_cache');
+		//h2
+		$this->data['text_js_library_settings'] = $this->language->get('text_js_library_settings');
+		$this->data['text_albums_settings'] = $this->language->get('text_albums_settings');
+		$this->data['text_general_settings'] = $this->language->get('text_general_settings');
+		$this->data['text_modules_settings'] = $this->language->get('text_modules_settings');
 
 		//Set links
 		$this->data['text_section_album_list'] 	= $this->language->get('section_album_list');
@@ -75,6 +121,9 @@ class ControllerAlbumSettings extends Controller {
   			}
   		}
   		
+  		$this->load->model('design/layout');
+		$this->data['layouts'] = $this->model_design_layout->getLayouts();
+
   		$this->data['breadcrumbs'] = array();
 
    		$this->data['breadcrumbs'][] = array(

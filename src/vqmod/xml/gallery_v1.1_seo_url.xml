@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>PhotoGallery v1.1 SEO urls </id>
+	<version>1.1</version>
+	<vqmver></vqmver>
+	<author>Shashakhmetov Talgat[talgatks@gmail.com]</author>
+	<file name="catalog/controller/common/seo_url.php">
+		<operation error="log">
+			<search position="after"><![CDATA[$this->request->get['route'] = 'information/information';]]></search>
+			<add><![CDATA[			} elseif (isset($this->request->get['album_id'])) {
+				$this->request->get['route'] = 'gallery/photos';
+			} elseif ($this->request->get['route'] = 'gallery/gallery') {
+				$this->request->get['route'] = 'gallery/gallery';
+			]]></add>
+		</operation>
+		<operation error="log">
+			<search position="before"><![CDATA[if ($url[0] == 'information_id') {]]></search>
+			<add><![CDATA[						if ($url[0] == 'album_id') {
+						$this->request->get['album_id'] = $url[1];
+					}]]></add>
+		</operation>
+		<operation error="log">
+			<search position="before"><![CDATA[} elseif ($key == 'path') {]]></search>
+			<add><![CDATA[				} elseif (($data['route'] == 'gallery/photos' && $key == 'album_id' && !empty($value))) { 
+					if ($this->config->get('config_galleries_include_seo_path')){
+						$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "url_alias WHERE `query` = 'gallery/gallery'");
+						if ($query->num_rows) {
+							$url .= '/' . $query->row['keyword'];
+						}
+						$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "url_alias WHERE `query` = '" . $this->db->escape($key . '=' . (int)$value) . "'");
+						if ($query->num_rows) {
+							$url .= '/' . $query->row['keyword'];
+							unset($data[$key]);
+						}					
+					}else{
+						$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "url_alias WHERE `query` = '" . $this->db->escape($key . '=' . (int)$value) . "'");
+						if ($query->num_rows) {
+							$url .= '/' . $query->row['keyword'];
+							unset($data[$key]);
+						}
+					}
+				} elseif ($data['route'] == 'gallery/gallery') {
+					$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "url_alias WHERE `query` = 'gallery/gallery'");
+					if ($query->num_rows) {
+						$url .= '/' . $query->row['keyword'];
+						unset($data[$key]);
+					}
+			
+				]]></add>
+		</operation>
+	</file>
+</modification>

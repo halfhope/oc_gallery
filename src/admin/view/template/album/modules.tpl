@@ -217,7 +217,7 @@
               </tr>
               <tr class="s_img1">
                 <td><?php echo $entry_layout; ?></td>
-                <td><select name="gallery_module[<?php echo $module_row; ?>][layout_id]">
+                <td><select name="gallery_module[<?php echo $module_row; ?>][layout_id]" class="category-product-changer" data-id="<?php echo $module_row; ?>">
                   <?php foreach ($layouts as $layout) { ?>
                   <?php if ($layout['layout_id'] == $module['layout_id']) { ?>
                   <option value="<?php echo $layout['layout_id']; ?>" selected="selected"><?php echo $layout['name']; ?></option>
@@ -227,6 +227,45 @@
                   <?php } ?>
                 </select></td>
               </tr>
+              <!-- category -->
+              <tr class="s_img1 show_on_category<?php echo $module_row; ?>">
+                <td><?php echo $entry_module_category ?></td>
+                <td><div class="scrollbox"  style="width:500px;">
+                  <?php $class = 'odd'; ?>
+                  <?php foreach ($categories as $category) { ?>
+                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                  <div class="<?php echo $class; ?>">
+                    <?php if (in_array($category['category_id'], $module['album_show_on_categories'])) { ?>
+                    <input type="checkbox" name="gallery_module[<?php echo $module_row; ?>][album_show_on_categories][]" id="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>" value="<?php echo $category['category_id']; ?>" checked="checked" />
+                    <label for="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>"><?php echo $category['name']; ?></label>
+                    <?php } else { ?>
+                    <input type="checkbox" name="gallery_module[<?php echo $module_row; ?>][album_show_on_categories][]" id="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>" value="<?php echo $category['category_id']; ?>" />
+                    <label for="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>"><?php echo $category['name']; ?></label>
+                    <?php } ?>
+                  </div>
+                  <?php } ?>
+                </div>
+                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
+              </tr>
+              <!-- /category -->
+              <!-- product -->
+              <tr class="s_img1 show_on_product<?php echo $module_row; ?>">
+                <td><?php echo $entry_module_product ?></td>
+                <td><input type="text" id="related<?php echo $module_row; ?>" class="album_show_on_products" data-id="<?php echo $module_row; ?>" value="" /></td>
+              </tr>
+              <tr class="s_img1 show_on_product<?php echo $module_row; ?>">
+              <td>&nbsp;</td>
+              <td><div id="<?php echo $module_row; ?>product-related" class="scrollbox">
+                  <?php $class = 'odd'; ?>
+                  <?php foreach ($module['album_show_on_products'] as $product) { ?>
+                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                  <div id="<?php echo $module_row; ?>album_show_on_products<?php echo $product['product_id']; ?>" class="<?php echo $class; ?>"> <?php echo $product['name']; ?><img src="view/image/delete.png" />
+                    <input type="hidden" name="gallery_module[<?php echo $module_row; ?>][album_show_on_products][]" value="<?php echo $product['product_id']; ?>" />
+                  </div>
+                  <?php } ?>
+                </div></td>
+            </tr>
+              <!-- /product -->
               <tr class="s_img1">
                 <td><?php echo $entry_position; ?></td>
                 <td><select name="gallery_module[<?php echo $module_row; ?>][position]">
@@ -306,10 +345,27 @@ $(document).ready(function() {
   $('.show-album-galleries-link-changer').live('change', function(event) {
     initForm();
   });
+  $('.category-product-changer').live('change', function(event) {
+    initForm();
+  });
   $('#tabs a').tabs();
 });
 function select_change(){}
 function initForm(){
+  $.each($('.category-product-changer'), function(index, val) {
+    var item_value = parseInt($(val).val());
+    var item_data_id = parseInt($(val).attr('data-id'));
+    if (item_value == <?php echo $config_gallery_module_category_layout_id; ?>) {
+      $('.show_on_category'+item_data_id).show();
+    }else{
+      $('.show_on_category'+item_data_id).hide();
+    }
+    if (item_value == <?php echo $config_gallery_module_product_layout_id; ?>) {
+      $('.show_on_product'+item_data_id).show();
+    }else{
+      $('.show_on_product'+item_data_id).hide();
+    }
+  });
   $.each($('.type-changer'), function(index, val) {
     var m_row = $(val).attr('data-changer'); 
     var m_val = parseInt($(val).val()); 
@@ -377,7 +433,6 @@ function initForm(){
       }
     };
   });
-
 }
 function addModule() {
   html = '<div id="tab_module_'+ module_row +'" class="vtabs-content">';
@@ -515,11 +570,34 @@ function addModule() {
   html += '</tr>';
   html += '<tr class="s_img1">';
   html += '<td><?php echo $entry_layout; ?></td>';
-  html += '<td><select name="gallery_module['+ module_row +'][layout_id]">';
+  html += '<td><select name="gallery_module['+ module_row +'][layout_id]" class="category-product-changer" data-id="'+ module_row +'">';
   <?php foreach ($layouts as $layout): ?>
   html += '<option value="<?php echo $layout['layout_id']; ?>"><?php echo $layout['name']; ?></option>';
   <?php endforeach ?>
   html += '</select></td>';
+  html += '</tr>';
+  html += '<tr class="s_img1 show_on_category'+ module_row +'">';
+  html += '<td><?php echo $entry_module_category ?></td>';
+  html += '<td><div class="scrollbox"  style="width:500px;">';
+  <?php $class = 'odd'; ?>
+  <?php foreach ($categories as $category) { ?>
+  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+  html += '<div class="<?php echo $class; ?>">';
+  html += '<input type="checkbox" name="gallery_module['+ module_row +'][album_show_on_categories][]" id="'+ module_row +'cat<?php echo $category['category_id'] ?>" value="<?php echo $category['category_id']; ?>" />';
+  html += '<label for="'+ module_row +'cat<?php echo $category['category_id'] ?>"><?php echo $category['name']; ?></label>';
+  html += '</div>';
+  <?php } ?>
+  html += '</div>';
+  html += '<a onclick="$(this).parent().find(\':checkbox\').attr(\'checked\', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(\':checkbox\').attr(\'checked\', false);"><?php echo $text_unselect_all; ?></a></td>';
+  html += '</tr>';
+  html += '<tr class="s_img1 show_on_product'+ module_row +'">';
+  html += '<td><?php echo $entry_module_product ?></td>';
+  html += '<td><input type="text" id="related'+ module_row +'" class="album_show_on_products" data-id="'+ module_row +'" value="" /></td>';
+  html += '</tr>';
+  html += '<tr class="s_img1 show_on_product'+ module_row +'">';
+  html += '<td>&nbsp;</td>';
+  html += '<td><div id="'+ module_row +'product-related" class="scrollbox">';
+  html += '</div></td>';
   html += '</tr>';
   html += '<tr class="s_img1">';
   html += '<td><?php echo $entry_position; ?></td>';
@@ -552,7 +630,93 @@ function addModule() {
   $('#tabs a').tabs();
   initForm();
   $('#a_tab_module_'+ module_row).trigger('click');
+
+  var this_module_row = module_row;
+  $('#related'+ this_module_row).autocomplete({
+    delay: 0,
+    source: function(request, response) {
+      $.ajax({
+        url: 'index.php?route=catalog/product/autocomplete&token=<?php echo $token; ?>&filter_name=' +  encodeURIComponent(request.term),
+        dataType: 'json',
+        success: function(json) {   
+          response($.map(json, function(item) {
+            return {
+              label: item.name,
+              value: item.product_id
+            }
+          }));
+        }
+      });
+    }, 
+    select: function(event, ui) {
+      $('#'+ this_module_row +'product-related' + ui.item.value).remove();
+      
+      $('#'+ this_module_row +'product-related').append('<div id="'+ this_module_row +'album_show_on_products' + ui.item.value + '">' + ui.item.label + '<img src="view/image/delete.png" /><input type="hidden" name="gallery_module['+ this_module_row +'][album_show_on_products][]" value="' + ui.item.value + '" /></div>');
+
+      $('#'+ this_module_row +'product-related div:odd').attr('class', 'odd');
+      $('#'+ this_module_row +'product-related div:even').attr('class', 'even');
+          
+      return false;
+    },
+    focus: function(event, ui) {
+      return false;
+    }
+  });
+
+
+  $('#'+ this_module_row +'product-related div img').live('click', function() {
+    $(this).parent().remove();
+    
+    $('#'+ this_module_row +'product-related div:odd').attr('class', 'odd');
+    $('#'+ this_module_row +'product-related div:even').attr('class', 'even'); 
+  });
+
 	module_row++;
 }
+//--></script> 
+<!-- add product -->
+  
+<script type="text/javascript"><!--
+<?php $module_row = 0; ?>
+<?php foreach ($modules as $key => $module): ?>
+$('#related<?php echo $module_row; ?>').autocomplete({
+  delay: 0,
+  source: function(request, response) {
+    $.ajax({
+      url: 'index.php?route=catalog/product/autocomplete&token=<?php echo $token; ?>&filter_name=' +  encodeURIComponent(request.term),
+      dataType: 'json',
+      success: function(json) {   
+        response($.map(json, function(item) {
+          return {
+            label: item.name,
+            value: item.product_id
+          }
+        }));
+      }
+    });
+  }, 
+  select: function(event, ui) {
+    $('#<?php echo $module_row; ?>product-related' + ui.item.value).remove();
+    
+    $('#<?php echo $module_row; ?>product-related').append('<div id="<?php echo $module_row; ?>album_show_on_products' + ui.item.value + '">' + ui.item.label + '<img src="view/image/delete.png" /><input type="hidden" name="gallery_module[<?php echo $module_row; ?>][album_show_on_products][]" value="' + ui.item.value + '" /></div>');
+
+    $('#<?php echo $module_row; ?>product-related div:odd').attr('class', 'odd');
+    $('#<?php echo $module_row; ?>product-related div:even').attr('class', 'even');
+        
+    return false;
+  },
+  focus: function(event, ui) {
+      event.preventDefault();
+  }
+});
+
+$('#<?php echo $module_row; ?>product-related div img').live('click', function() {
+  $(this).parent().remove();
+  
+  $('#<?php echo $module_row; ?>product-related div:odd').attr('class', 'odd');
+  $('#<?php echo $module_row; ?>product-related div:even').attr('class', 'even'); 
+});
+<?php $module_row++; ?>
+<?php endforeach ?>
 //--></script> 
 <?php echo $footer; ?>

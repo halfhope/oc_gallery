@@ -37,8 +37,13 @@
                 <td><span class="required">* &nbsp;</span><?php echo $entry_album_name ?></td>
                 <td>
               <?php foreach ($languages as $language): ?>
-                <input class="require" type="text" size="28" name="album_data[album_name][<?php echo $language['language_id'] ?>]" id="album_name" value="<?php echo (isset($album_data['album_name'][$language['language_id']]) ? $album_data['album_name'][$language['language_id']] : '') ?>"><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br>
+                <input class="require" type="text" size="40" name="album_data[album_name][<?php echo $language['language_id'] ?>]" id="album_name" value="<?php echo (isset($album_data['album_name'][$language['language_id']]) ? $album_data['album_name'][$language['language_id']] : '') ?>"><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br>
               <?php endforeach ?>
+                </td>
+              </tr>
+              <tr class="s_img1">
+                <td><?php echo $entry_album_seo_name ?></td>
+                <td><input type="text" size="40" name="album_data[album_seo_url]" id="album_name" value="<?php echo (isset($album_data['album_seo_url']) ? $album_data['album_seo_url'] : '') ?>">
                 </td>
               </tr>
               <tr class="s_img1">
@@ -92,6 +97,26 @@
               </table>
               <h2><?php echo $text_album_page_settings ?></h2>
               <table class="form">
+              <tr class="s_img5">
+                <td><?php echo $entry_gallery_photos_limit ?></td>
+                <td>
+                  <input type="text" name="album_data[photos_limit]" id="photos_limit" size="3" value="<?php echo (isset($album_data['photos_limit'])? $album_data['photos_limit'] : 0) ?>">
+                </td>
+              </tr>
+              <tr class="s_img5">
+                <td><?php echo $entry_gallery_show_limiter ?></td>
+                <td><?php if (isset($album_data['show_limiter']) && $album_data['show_limiter']) { ?>
+                <input type="radio" name="album_data[show_limiter]" value="1" checked="checked" />
+                <?php echo $text_yes; ?>
+                <input type="radio" name="album_data[show_limiter]" value="0" />
+                <?php echo $text_no; ?>
+                <?php } else { ?>
+                <input type="radio" name="album_data[show_limiter]" value="1" />
+                <?php echo $text_yes; ?>
+                <input type="radio" name="album_data[show_limiter]" value="0" checked="checked" />
+                <?php echo $text_no; ?>
+                <?php } ?></td>
+              </tr>
               <tr class="s_img5">
                 <td><span class="required">* &nbsp;</span><?php echo $entry_thumb_size ?></td>
                 <td>
@@ -205,6 +230,14 @@
               <tr>
                 <td><?php echo $entry_h1 ?></td>
                 <td><input type="text" style="width:500px;" name="album_data[album_h1_title][<?php echo $language['language_id'] ?>]" id="album_h1_title" value="<?php echo (isset($album_data['album_h1_title'][$language['language_id']]) ? $album_data['album_h1_title'][$language['language_id']] : '') ?>"></td>
+              </tr>
+              <tr>
+                <td><?php echo $entry_meta_keywords ?></td>
+                <td><input type="text" style="width:500px;" name="album_data[album_meta_keywords][<?php echo $language['language_id'] ?>]" id="album_meta_keywords" value="<?php echo (isset($album_data['album_meta_keywords'][$language['language_id']]) ? $album_data['album_meta_keywords'][$language['language_id']] : '') ?>"></td>
+              </tr>
+              <tr>
+                <td><?php echo $entry_meta_description ?></td>
+                <td><textarea style="width:500px;min-height:50px;" name="album_data[album_meta_description][<?php echo $language['language_id'] ?>]" id="album_meta_description<?php echo $language['language_id'] ?>"><?php echo (isset($album_data['album_meta_description'][$language['language_id']]) ? $album_data['album_meta_description'][$language['language_id']] : '') ?></textarea></td>
               </tr>
               <tr>
                 <td><?php echo $entry_description ?></td>

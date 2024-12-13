@@ -19,9 +19,12 @@ class ControllerAlbumModules extends Controller {
 		}		
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			$this->model_setting_setting->editSetting('gallery_module', $this->request->post);		
+
 			$this->session->data['success'] = $this->language->get('text_success_modules');
-			$this->cache->delete('album_module');		
+			$this->cache->delete('gallery_album_photos');		
 			$this->cache->delete('album_photos');		
+			$this->cache->delete('album_gallery');		
+			$this->cache->delete('album_module');		
 			$this->redirect($this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL'));
 		}
 				
@@ -29,6 +32,10 @@ class ControllerAlbumModules extends Controller {
 		
 		$this->data['albums'] = $this->model_album_index->getAlbums();
 		
+		//GetCategoryList
+		$categories = $this->model_album_index->getAllCategories();
+		$this->data['categories'] = $this->getAllCategories($categories);
+
 		$this->load->model('localisation/language');
 		$this->data['languages'] = $this->model_localisation_language->getLanguages();
 		$config_admin_language = $this->config->get('config_admin_language'); 
@@ -74,6 +81,9 @@ class ControllerAlbumModules extends Controller {
 		$this->data['entry_status'] = $this->language->get('entry_status');
 		$this->data['entry_sort_order'] = $this->language->get('entry_sort_order');
 		
+		$this->data['entry_module_category'] = $this->language->get('entry_module_category');
+		$this->data['entry_module_product'] = $this->language->get('entry_module_product');
+		
 		$this->data['button_save'] = $this->language->get('button_save');
 		$this->data['button_cancel'] = $this->language->get('button_cancel');
 		$this->data['button_add_module'] = $this->language->get('button_add_module');
@@ -88,6 +98,7 @@ class ControllerAlbumModules extends Controller {
 		$this->data['link_section_modules'] 	= $this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL');
 		$this->data['link_section_settings'] 	= $this->url->link('album/settings', 'token=' . $this->session->data['token'], 'SSL');
   		
+
   		if (isset($this->error['warning'])) {
 			$this->data['error_warning'] = $this->error['warning'];
 		} else {
@@ -125,11 +136,35 @@ class ControllerAlbumModules extends Controller {
 		} elseif ($this->config->get('gallery_module')) { 
 			$this->data['modules'] = $this->config->get('gallery_module');
 		}
+  		
 		
+		$this->load->model('catalog/product');
+		
+		$this->data['token'] = $this->session->data['token'];
+
 		foreach ($this->data['modules'] as $key => $value) {
 			$this->data['modules'][$key]['album_list'] = (isset($value['album_list']) ? $value['album_list'] : array());
 			$this->data['modules'][$key]['photo_album_list'] = (isset($value['photo_album_list']) ? $value['photo_album_list'] : array());
+			$this->data['modules'][$key]['album_show_on_categories'] = (isset($value['album_show_on_categories']) ? $value['album_show_on_categories'] : array());
+			$this->data['modules'][$key]['album_show_on_products'] = (isset($value['album_show_on_products']) ? $value['album_show_on_products'] : array());
+			
+			$album_show_on_products = array();
+
+			foreach ($this->data['modules'][$key]['album_show_on_products'] as $product_id) {
+				$product_info = $this->model_catalog_product->getProduct($product_id);
+				
+				if ($product_info) {
+					$album_show_on_products[$product_id] = array(
+						'product_id' => $product_info['product_id'],
+						'name'       => $product_info['name']
+					);
+				}
+			}
+			$this->data['modules'][$key]['album_show_on_products'] = $album_show_on_products;
 		}
+
+		$this->data['config_gallery_module_category_layout_id'] 			= $this->config->get('config_gallery_module_category_layout_id');
+		$this->data['config_gallery_module_product_layout_id'] 			= $this->config->get('config_gallery_module_product_layout_id');
 				
 		$this->load->model('design/layout');
 		$this->data['layouts'] = $this->model_design_layout->getLayouts();
@@ -161,6 +196,26 @@ class ControllerAlbumModules extends Controller {
 		} else {
 			return false;
 		}	
+	}
+	private function getAllCategories($categories, $parent_id = 0, $parent_name = '') {
+		$output = array();
+
+		if (array_key_exists($parent_id, $categories)) {
+			if ($parent_name != '') {
+				$parent_name .= $this->language->get('text_separator');
+			}
+
+			foreach ($categories[$parent_id] as $category) {
+				$output[$category['category_id']] = array(
+					'category_id' => $category['category_id'],
+					'name'        => $parent_name . $category['name']
+				);
+
+				$output += $this->getAllCategories($categories, $category['category_id'], $parent_name . $category['name']);
+			}
+		}
+
+		return $output;
 	}
 }
 ?>

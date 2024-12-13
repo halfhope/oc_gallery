@@ -7,13 +7,55 @@ class ControllerGalleryGallery extends controller{
     private $current_language_id;
 
     public function index(){
+        if (isset($this->request->get['album_id'])) {
+            $album_id = (int)$this->request->get['album_id'];
+            if (!empty($album_id)) {
+                $this->redirect($this->url->link('gallery/gallery', 'album_id='.$album_id));
+            }else{
+                $this->section_galleries();
+            }
+        }else{
+            $this->section_galleries();
+        }
+    }
+    private function section_galleries(){
         $this->data['microtime'] = microtime(true);
+        
         $this->load->model('catalog/product');
         $this->load->model('tool/image');
         $this->load->model('catalog/gallery');
         $this->language->load('product/gallery');
-
         $this->current_language_id = $this->config->get('config_language_id');
+        
+        $desc = $this->config->get('config_galleries_description');
+        if ($this->config->get('config_gallery_show_description') && !empty($desc[$this->current_language_id])) {
+            $this->data['galleries_description'] = html_entity_decode($desc[$this->current_language_id], ENT_QUOTES, 'UTF-8');
+        }
+
+        $titl = $this->config->get('config_galleries_title');
+        if (!empty($titl[$this->current_language_id])) {
+            $this->data['title'] = $titl[$this->current_language_id];
+        }else{
+            $this->data['title'] = $this->language->get('text_gallery_list');
+        }
+        $this->document->setTitle($this->data['title']);
+
+        $h1_titl = $this->config->get('config_galleries_h1_title');
+        if (!empty($h1_titl[$this->current_language_id])) {
+            $this->data['h1_title'] = $h1_titl[$this->current_language_id];
+        }else{
+            $this->data['h1_title'] = $this->data['title'];
+        }
+
+        $kwd = $this->config->get('config_galleries_meta_keywords');
+        if (!empty($kwd[$this->current_language_id])) {
+            $this->document->setKeywords($kwd[$this->current_language_id]);
+        }
+
+        $meta_desc = $this->config->get('config_galleries_meta_description');
+        if (!empty($meta_desc[$this->current_language_id])) {
+            $this->document->setDescription($meta_desc[$this->current_language_id]);
+        }
 
         $albums = $this->model_catalog_gallery->getAlbums();
         
@@ -23,7 +65,7 @@ class ControllerGalleryGallery extends controller{
                 if (!empty($cached)) {
                     $albums[$key]['images'] = $cached;  
                 }else{
-                    $cached = $this->getAlbumImages($album['album_id'], 0);
+                    $cached = $this->getAlbumImages($album['album_id'], 1, 0);
                     $this->cache->set('album_photos.'.md5($album['album_id'].'0'), $cached);
                     $albums[$key]['images'] = $cached;
                 }
@@ -39,14 +81,17 @@ class ControllerGalleryGallery extends controller{
                 $albums[$key]['album_data']['cover_image']['thumb'] = $this->model_tool_image->resize('no_image.jpg', $this->config->get('config_gallery_cover_image_width'), $this->config->get('config_gallery_cover_image_height'));
             }
         }
+        $this->data['config_gallery_cover_image_width'] = $this->config->get('config_gallery_cover_image_width');
+        $this->data['config_gallery_cover_image_height'] = $this->config->get('config_gallery_cover_image_height');
+
         $this->data['albums'] = $albums;
 
         // ***************************************************************************************************** 
         #назначаем заголовок страницы (обязательно)
 
-        $this->document->setTitle($this->language->get('text_gallery_list'));
-
-        $this->data['heading_title'] = $this->language->get('text_gallery_list');
+        $this->document->addStyle('catalog/view/theme/default/stylesheet/photo_gallery.manager.css');
+        
+        $this->data['heading_title'] = $this->data['title'];
         
         #Добавляем хлебные крошки (обязательно)
         $this->data['breadcrumbs'] = array();
@@ -56,7 +101,7 @@ class ControllerGalleryGallery extends controller{
             'separator' => false
         ); 
         $this->data['breadcrumbs'][] = array(
-            'text'      => $this->language->get('text_gallery_list'),
+            'text'      => $this->data['title'],
             'href'      => $this->url->link('gallery/gallery', '', 'SSL'),          
             'separator' => $this->language->get('text_separator')
         );
@@ -84,12 +129,16 @@ class ControllerGalleryGallery extends controller{
         $this->response->setOutput($this->render());
         // ***************************************************************************************************** 
     }
-    private function getAlbumImages($album_id, $limit = 0){
+
+    private function getAlbumImages($album_id, $page = 1, $limit = 0){
         $this->load->model('catalog/category');
         $this->load->model('catalog/product');
         $this->load->model('tool/image');
         $this->load->model('catalog/gallery');
         
+        $start = ($page - 1) * $limit;
+        $limit = $limit + $start;
+
         $album = $this->model_catalog_gallery->getAlbum($album_id);
 
         $album_photos = array();
@@ -102,20 +151,20 @@ class ControllerGalleryGallery extends controller{
                     );
                     
                     $products = $this->model_catalog_product->getProducts($data);
-                    
+
                     foreach ($products as $product){
                         if ($product['image']) {
                             $key = md5($product['image']);
-                            $album_photos[$key]['image'] = $product['image'];
-                            $album_photos[$key]['title'] = $product['name'];
+                            $album_photos[$key]['image']    = $product['image'];
+                            $album_photos[$key]['title']    = $product['name'];
                         }
                         if ($album['album_data']['include_additional_images']) {
                             $images = $this->model_catalog_product->getProductImages($product['product_id']);
                             if (!empty($images)) {
                                 foreach ($images as $image) {
                                     $key = md5($image['image']);
-                                    $album_photos[$key]['image'] = $image['image'];
-                                    $album_photos[$key]['title'] = $product['name'];
+                                    $album_photos[$key]['image']    = $image['image'];
+                                    $album_photos[$key]['title']    = $product['name'];
                                 }
                             }
                         }
@@ -153,21 +202,26 @@ class ControllerGalleryGallery extends controller{
         }
         //Limit photos
         $result = array();
-        if ($limit == 0) {
+        
+        if (($page == 1) && ($limit == 0)) {
             $result = $album_photos;
         }else{
             reset($album_photos);
-            for ($counter =0; $counter  < $limit; $counter ++) { 
-                $elem = current($album_photos);
-                if (!empty($elem)) {
-                    $result[] = $elem;
+            for ($counter = 0; $counter < $limit; $counter ++) { 
+                if ($counter < $start) {
                     next($album_photos);
                 }else{
-                    break;
+                    $elem = current($album_photos);
+                    if (!empty($elem)) {
+                        $result[] = $elem;
+                        next($album_photos);
+                    }else{
+                        break;
+                    }
                 }
             }
         }
-        return $result;
+          return $result;
     }
 }
 ?>
