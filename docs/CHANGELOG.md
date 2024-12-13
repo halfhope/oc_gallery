@@ -19,3 +19,9 @@
 * Added HTTP Last-Modified headers for each gallery page
 * Enabled LazyLoad for a large number of images (Example)
 
+#### 1.3
+
+* Added LazyLoad compatibility with mobile devices
+* Added independent SEO controller
+* Fixed minor bugs
+
