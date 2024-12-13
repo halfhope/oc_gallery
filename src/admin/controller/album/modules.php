@@ -25,6 +25,8 @@ class ControllerAlbumModules extends Controller {
 			$this->cache->delete('album_photos');		
 			$this->cache->delete('album_gallery');		
 			$this->cache->delete('album_module');		
+			$this->cache->delete('seo_pro_gallery');
+
 			$this->redirect($this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL'));
 		}
 				
@@ -136,7 +138,9 @@ class ControllerAlbumModules extends Controller {
 		} elseif ($this->config->get('gallery_module')) { 
 			$this->data['modules'] = $this->config->get('gallery_module');
 		}
-  		
+		if ($this->data['modules'][0]['module_type'] == 2) {
+	  		unset($this->data['modules'][0]);
+		}
 		
 		$this->load->model('catalog/product');
 		
@@ -164,7 +168,8 @@ class ControllerAlbumModules extends Controller {
 		}
 
 		$this->data['config_gallery_module_category_layout_id'] 			= $this->config->get('config_gallery_module_category_layout_id');
-		$this->data['config_gallery_module_product_layout_id'] 			= $this->config->get('config_gallery_module_product_layout_id');
+		$this->data['config_gallery_module_product_layout_id'] 				= $this->config->get('config_gallery_module_product_layout_id');
+		$this->data['config_gallery_module_hook_layout_id'] 				= $this->config->get('config_gallery_module_hook_layout_id');
 				
 		$this->load->model('design/layout');
 		$this->data['layouts'] = $this->model_design_layout->getLayouts();
@@ -208,7 +213,7 @@ class ControllerAlbumModules extends Controller {
 			foreach ($categories[$parent_id] as $category) {
 				$output[$category['category_id']] = array(
 					'category_id' => $category['category_id'],
-					'name'        => $parent_name . $category['name']
+					'name'        => addslashes($parent_name . $category['name'])
 				);
 
 				$output += $this->getAllCategories($categories, $category['category_id'], $parent_name . $category['name']);

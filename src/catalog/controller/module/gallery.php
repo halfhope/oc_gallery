@@ -34,6 +34,26 @@ class ControllerModuleGallery extends Controller {
 		return true;
 	}
 	protected function index($setting) {
+		if ($this->config->get("seogallery") != 1) {
+
+			$this->getChild('common/seo_gallery');
+			$this->config->set("seogallery", 1);
+
+			if ($this->gallery_flag == 'photos') {
+				$this->response->setOutput($this->getChild('gallery/photos'));
+				$this->response->output();
+				exit();
+			}
+
+			if ($this->gallery_flag == 'gallery') {
+				$this->response->setOutput($this->getChild('gallery/gallery'));
+				$this->response->output();
+				exit();
+			}
+		}
+		if ($setting['module_type'] == 2) {
+			return;
+		}
 		$this->data['microtime'] = microtime(true);
 		$this->load->model('catalog/product');
 		$this->load->model('tool/image');
@@ -303,11 +323,23 @@ class ControllerModuleGallery extends Controller {
 		return $result;
 	}
 	private function getProductId(){
-		return $this->request->get['product_id'];
+		$product_id = 0;
+
+		if ($this->request->get['route'] == 'catalog/product') {
+			$product_id = $this->request->get['product_id'];
+		}
+
+		return $product_id;
 	}
 	private function getCategoryId(){
-		$path = explode('_', (string)$this->request->get['path']);
-		return end($path);
+		$category_id = 0;
+
+		if ($this->request->get['route'] == 'catalog/category') {
+			$path = explode('_', (string)$this->request->get['path']);
+			$category_id = end($path);
+		}
+
+		return $category_id;
 	}
 }
 ?>

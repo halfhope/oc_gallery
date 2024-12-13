@@ -19,7 +19,15 @@ class ModelAlbumIndex extends Model {
 	public function getAlbum($album_id) {		
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "albums WHERE `album_id` = '".(int)$album_id."' ORDER BY `sort_order`");
 		$query->rows[0]['album_data'] = json_decode($query->rows[0]['album_data'], true);
-		return $query->rows[0];
+		$album = $query->rows[0];
+
+		$seo_query = $this->db->query("SELECT * FROM `". DB_PREFIX . "url_alias_gallery` WHERE `query` = 'album_id=" . $album['album_id'] . "' LIMIT 1");
+
+		if (!empty($seo_query->row)) {
+			$album['album_data']['album_seo_url'] = $seo_query->row['keyword'];
+		}
+
+		return $album;
 	}
 	/**
 	 * Edit album and seo url
@@ -52,19 +60,18 @@ class ModelAlbumIndex extends Model {
 		$album_id = (int)$data['album_id'];
 
 		// Get seo query
-		$seo_query = $this->db->query("SELECT * FROM `". DB_PREFIX ."url_alias` WHERE `query` = 'album_id=".(int)$album_id."' LIMIT 1");
-
+		$seo_query = $this->db->query("SELECT * FROM `". DB_PREFIX . "url_alias_gallery` WHERE `query` = 'album_id=".(int)$album_id."' LIMIT 1");
 
 		// (Check) and (update if exists) or (delete if exists and empty)
 		if (empty($seo_query->row)) {
 			if ($album_data['album_seo_url']) {
-				$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias` (`query`, `keyword`) VALUES ('album_id=" . (int)$album_id . "', '" . $this->db->escape($album_data['album_seo_url']) . "')");
+				$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias_gallery` (`query`, `keyword`) VALUES ('album_id=" . (int)$album_id . "', '" . $this->db->escape($album_data['album_seo_url']) . "')");
 			}
 		}else{
 			if (empty($album_data['album_seo_url'])) {
-				$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
+				$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias_gallery` WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
 			}else{
-				$this->db->query("UPDATE `" . DB_PREFIX . "url_alias` SET `query` = 'album_id=" . (int)$album_id . "', keyword = '" . $this->db->escape($album_data['album_seo_url']) . "' WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
+				$this->db->query("UPDATE `" . DB_PREFIX . "url_alias_gallery` SET `query` = 'album_id=" . (int)$album_id . "', keyword = '" . $this->db->escape($album_data['album_seo_url']) . "' WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
 			}
 		}
 	}
@@ -97,7 +104,7 @@ class ModelAlbumIndex extends Model {
 		if (!empty($album_data['album_seo_url'])) {
 			$album_query = $this->db->query("SELECT `album_id` FROM `". DB_PREFIX ."albums` ORDER BY `album_id` DESC LIMIT 1");
 			$album_id = $album_query->row['album_id'];
-			$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias` (`query`, `keyword`) VALUES ('album_id=" . (int)$album_id . "', '" . $this->db->escape($album_data['album_seo_url']) . "')");
+			$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias_gallery` (`query`, `keyword`) VALUES ('album_id=" . (int)$album_id . "', '" . $this->db->escape($album_data['album_seo_url']) . "')");
 		}
 		
 	}
@@ -121,7 +128,7 @@ class ModelAlbumIndex extends Model {
 	 */
 	public function deleteAlbum($aids) {
 		foreach ($aids as $key => $aid) {
-			$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `query` = 'album_id=".(int)$aid."'");
+			$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias_gallery` WHERE `query` = 'album_id=".(int)$aid."'");
 			$this->db->query("DELETE FROM `" . DB_PREFIX . "albums` WHERE `album_id` = '" . (int)$aid . "'");
 		}
 	}
@@ -145,29 +152,52 @@ class ModelAlbumIndex extends Model {
 		return $category_data;
 	}
 	/**
-	 * Check and update database from v1.1 to v1.2
-	 * Add column 'last_modified' into table `albums`
+	 * Check and update database from v1.2 to v1.3
+	 * Create table url_alias_gallery and move urls from url_alias
 	 */
 	public function check_and_update(){
-		$result = $this->db->query("SHOW COLUMNS FROM `". DB_PREFIX ."albums` LIKE 'last_modified'");
-		if (empty($result->row)) {
-			$this->db->query("ALTER TABLE  `". DB_PREFIX ."albums` ADD  `last_modified` DATETIME NOT NULL AFTER  `sort_order`");
-			
+		$query = $this->db->query("SHOW TABLES LIKE '" . DB_PREFIX . "url_alias_gallery'");
+
+		//create table url_alias_gallery
+		if ($query->num_rows == 0) {
+			$query = $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "url_alias_gallery` (
+			  `url_alias_id` int(11) NOT NULL AUTO_INCREMENT,
+			  `query` varchar(255) NOT NULL,
+			  `keyword` varchar(255) NOT NULL,
+			  PRIMARY KEY (`url_alias_id`),
+			  KEY `query` (`query`)
+			) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;");
+
+			// Get all albums
 			$albums = $this->getAlbums();
-			//adding last_modified into each album
-			foreach ($albums as $row_key => $album) {
-				$this->db->query("UPDATE `". DB_PREFIX ."albums` SET `last_modified` = '". date('Y-m-d H:i:s') ."' WHERE `album_id` = ". $album['album_id']);
+			
+			// Move url for each album
+			foreach ($albums as $album) {
+				$seo_query = $this->db->query("SELECT * FROM `". DB_PREFIX . "url_alias` WHERE `query` = 'album_id=" . $album['album_id'] . "' LIMIT 1");
+				
+				if (!empty($seo_query->row)) {
+					$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias_gallery` (`query`, `keyword`) VALUES ('album_id=" . (int)$album['album_id'] . "', '" . $this->db->escape($seo_query->row['keyword']) . "')");
+				}
 			}
 			
-			//clear cache
+			// Delete old and create new url for gallery/gallery route
+			$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `query` = 'gallery/gallery'");
+			$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias_gallery` (`query`, `keyword`) VALUES ('gallery/gallery', '" . $this->db->escape($this->config->get('config_galleries_seo_name')) . "')");
+			
 			$this->cache->delete('gallery_album_photos');		
 			$this->cache->delete('album_photos');		
 			$this->cache->delete('album_gallery');		
 			$this->cache->delete('album_module');			
+			$this->cache->delete('seo_pro_gallery');			
+			$this->cache->delete('seo_pro');			
+
 			return true;
-		}else{
-			return false;
+		
 		}
+
+		return false;
+
 	}
 }
 ?>

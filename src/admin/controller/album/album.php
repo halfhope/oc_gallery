@@ -7,20 +7,23 @@ class ControllerAlbumAlbum extends Controller {
 
 	public function index() {
 		$this->language->load('album/index'); 
+		$this->load->model('album/index');
+		
+		// Check and Update
+		$update_result = $this->model_album_index->check_and_update();
+		if ($update_result) {
+			$this->session->data['success'] = $this->language->get('text_success_updated');
+			$this->redirect($this->url->link('album/settings', 'token=' . $this->session->data['token'], 'SSL'));
+		}
+
 		$this->document->setTitle($this->language->get('heading_title'));
 		$this->document->addStyle('view/stylesheet/photo_gallery.manager.css');
-		$this->load->model('album/index');
 			if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validatePerms()) {
 				$this->error['warning'] = $this->language->get('text_success');
 				$this->redirect($this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL'));
 			}
 		$this->data['albums'] = $this->model_album_index->getAlbums();
 
-		// Check and Update
-		$update_result = $this->model_album_index->check_and_update();
-		if ($update_result) {
-			$this->session->data['success'] = $this->language->get('text_success_updated');
-		}
 		if (!empty($this->data['albums'])) {
 			foreach ($this->data['albums'] as $key => $value) {
 				$value['edit_link'] = $this->url->link('album/album/edit', 'token=' . $this->session->data['token'].'&album_id='.$value['album_id'], 'SSL');
@@ -128,7 +131,7 @@ class ControllerAlbumAlbum extends Controller {
 			if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validatePerms()) {
 				$this->session->data['success'] = $this->language->get('text_success_added');
 				$this->model_album_index->addAlbum($this->request->post);				
-				$this->cache->delete('seo_pro');
+				$this->cache->delete('seo_pro_gallery');
 				$this->redirect($this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL'));
 			}
 		$this->load->model('localisation/language');
@@ -312,7 +315,7 @@ class ControllerAlbumAlbum extends Controller {
 				$this->cache->delete('album_photos');		
 				$this->cache->delete('album_gallery');		
 				$this->cache->delete('album_module');		
-				$this->cache->delete('seo_pro');		
+				$this->cache->delete('seo_pro_gallery');		
 				
 				$this->redirect($this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL'));
 			}

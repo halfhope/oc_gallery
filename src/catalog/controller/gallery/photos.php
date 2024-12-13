@@ -7,6 +7,8 @@ class ControllerGalleryPhotos extends controller{
     private $current_language_id;
 
     public function index(){
+        $this->getChild('common/seo_gallery');
+
         if (isset($this->request->get['album_id'])) {
             $album_id = (int)$this->request->get['album_id'];
             if (!empty($album_id)) {
@@ -31,6 +33,9 @@ class ControllerGalleryPhotos extends controller{
         $this->current_language_id = $this->config->get('config_language_id');
         
         $pre_album = $this->model_catalog_gallery->getAlbum($album_id);
+        if (empty($pre_album)) {
+            $this->redirect($this->url->link('gallery/gallery'));
+        }
         $total_cached_images_name = 'album_photos.total.'.md5($album_id.'10'.$this->current_language_id);
 
         if ($this->config->get('config_gallery_modules_cache_enabled')) {
@@ -38,12 +43,12 @@ class ControllerGalleryPhotos extends controller{
             if (!empty($total_cached)) {
                 $pre_album['total_images'] = count($total_cached); 
             }else{
-                $total_cached = $this->getAlbumImages($album_id, 1, 0);
+                $total_cached = $this->model_catalog_gallery->getAlbumImages($album_id, 1, 0);
                 $this->cache->set($total_cached_images_name, $total_cached);
                 $pre_album['total_images'] = count($total_cached);
             }
         }else{
-            $pre_album['total_images'] = count($this->getAlbumImages($album_id, 1, 0));
+            $pre_album['total_images'] = count($this->model_catalog_gallery->getAlbumImages($album_id, 1, 0));
         }
 
         if (isset($this->request->get['page'])) {
@@ -130,12 +135,12 @@ class ControllerGalleryPhotos extends controller{
                 if (!empty($cached)) {
                     $album['images'] = $cached;  
                 }else{
-                    $cached = $this->getAlbumImages($album_id, $page, $limit);
+                    $cached = $this->model_catalog_gallery->getAlbumImages($album_id, $page, $limit);
                     $this->cache->set($cached_images_name, $cached);
                     $album['images'] = $cached;
                 }
             }else{
-                $album['images'] = $this->getAlbumImages($album_id, $page, $limit);
+                $album['images'] = $this->model_catalog_gallery->getAlbumImages($album_id, $page, $limit);
             }
             
             if ($limit == 0) {
@@ -149,6 +154,7 @@ class ControllerGalleryPhotos extends controller{
                 $pagination->text = $this->language->get('text_pagination');
                 $pagination->url = $this->url->link('gallery/photos', 'album_id=' . $this->request->get['album_id']. '&page={page}'. $url);
                 $this->cacher['pagination'] = $pagination->render();
+                // var_dump($pagination);
             }
        
 
@@ -203,8 +209,8 @@ class ControllerGalleryPhotos extends controller{
             if (!isset($album['album_data']['use_lazyload'])) {
                 $album['album_data']['use_lazyload'] = false;
             }
-            #$album['album_data']['lazyload_image'] = $this->model_tool_image->resize('lazyload_image.jpg', $album['album_data']['thumb_width'], $album['album_data']['thumb_height']);
-            $album['album_data']['lazyload_image'] = '#';
+            $album['album_data']['lazyload_image'] = $this->model_tool_image->resize('lazyload_image.jpg', $album['album_data']['thumb_width'], $album['album_data']['thumb_height']);
+            // $album['album_data']['lazyload_image'] = '#';
 
             $this->cacher['album'] = $album;
             if ($this->config->get('config_gallery_modules_cache_enabled')) {
@@ -255,8 +261,8 @@ class ControllerGalleryPhotos extends controller{
             'separator' => $this->language->get('text_separator')
         );
         $this->data['breadcrumbs'][] = array(
-            'text'      => $album['album_title'],
-            'href'      => $this->url->link('gallery/photos', 'album_id='.$album_id. (($page == 1)? '' : '&page='.$page ).$url, 'SSL'),          
+            'text'      => (!empty($album['album_name'])? $album['album_name']: $album['album_data']['album_title'][$this->current_language_id]),
+            'href'      => $this->url->link('gallery/photos', 'album_id='.$album_id. (($page == 1)? '' : '&page='.$page ).(($limit == 0)?'':$url), 'SSL'),          
             'separator' => $this->language->get('text_separator')
         );
 
@@ -293,99 +299,6 @@ class ControllerGalleryPhotos extends controller{
         #рендеринг шаблона (Обязательно)
         $this->response->setOutput($this->render());
         // ***************************************************************************************************** 
-    }
-    private function getAlbumImages($album_id, $page = 1, $limit = 0){
-        $this->load->model('catalog/category');
-        $this->load->model('catalog/product');
-        $this->load->model('tool/image');
-        $this->load->model('catalog/gallery');
-        
-        $start = ($page - 1) * $limit;
-        $limit = $limit + $start;
-
-        $album = $this->model_catalog_gallery->getAlbum($album_id);
-
-        $album_photos = array();
-        switch ($album['album_type']) {
-            case 0: //Category
-                foreach ($album['album_data']['album_categories'] as $category_id) {
-                    $products = $this->model_catalog_category->getCategories($category_id);
-                    $data = array(
-                        'filter_category_id' => $category_id
-                    );
-                    
-                    $products = $this->model_catalog_product->getProducts($data);
-
-                    foreach ($products as $product){
-                        if ($product['image']) {
-                            $key = md5($product['image']);
-                            $album_photos[$key]['image']    = $product['image'];
-                            $album_photos[$key]['title']    = $product['name'];
-                        }
-                        if ($album['album_data']['include_additional_images']) {
-                            $images = $this->model_catalog_product->getProductImages($product['product_id']);
-                            if (!empty($images)) {
-                                foreach ($images as $image) {
-                                    $key = md5($image['image']);
-                                    $album_photos[$key]['image']    = $image['image'];
-                                    $album_photos[$key]['title']    = $product['name'];
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            case 1: //Directory
-                foreach (explode(PHP_EOL, $album['album_data']['album_directory']) as $directory) {
-                    if (!empty($directory)) {
-                        
-                    $data = glob($directory);
-                    $data = array_filter($data, 'is_file');
-                        if (!empty($data)) {
-                            foreach ($data as $value) {
-                                $key = md5($value);
-                                if ($value{0} == 'i') {
-                                    $value = str_replace('image/', '', $value);
-                                }
-                                $album_photos[$key]['image'] = $value;
-                                $album_photos[$key]['title'] = '';
-                            }
-                        }
-                    }
-                }
-                break;
-            case 2: //Custom images
-                if (!empty($album['album_data']['gallery_images'])) {
-                    foreach ($album['album_data']['gallery_images'] as $gallery_image) {
-                        $key = md5($gallery_image['image']);
-                        $album_photos[$key]['image'] = $gallery_image['image'];
-                        $album_photos[$key]['title'] = $gallery_image['description'][$this->current_language_id];
-                    }
-                }
-            break;
-        }
-        //Limit photos
-        $result = array();
-        
-        if (($page == 1) && ($limit == 0)) {
-            $result = $album_photos;
-        }else{
-            reset($album_photos);
-            for ($counter = 0; $counter < $limit; $counter ++) { 
-                if ($counter < $start) {
-                    next($album_photos);
-                }else{
-                    $elem = current($album_photos);
-                    if (!empty($elem)) {
-                        $result[] = $elem;
-                        next($album_photos);
-                    }else{
-                        break;
-                    }
-                }
-            }
-        }
-          return $result;
     }
 }
 ?>

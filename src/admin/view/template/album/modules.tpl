@@ -21,8 +21,16 @@
     </div>
     <div class="content">
       <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form">
+      <!-- hook -->
+      <input type="hidden" name="gallery_module[0][layout_id]" value="<?php echo $config_gallery_module_hook_layout_id ?>">
+      <input type="hidden" name="gallery_module[0][module_type]" value="2">
+      <input type="hidden" name="gallery_module[0][position]" value="content_top">
+      <input type="hidden" name="gallery_module[0][status]" value="1">
+      <input type="hidden" name="gallery_module[0][sort_order]" value="0">
+      <!-- /hook -->
+
         <div id="tabs" class="vtabs">
-        <?php $module_row = 0; ?>
+        <?php $module_row = 1; ?>
           <?php foreach ($modules as $module): ?>
             <a href="#tab_module_<?php echo $module_row; ?>" id="a_tab_module_<?php echo $module_row; ?>" class="tab_btn">
               <?php echo $module['name'] ?>
@@ -34,7 +42,7 @@
             <img src="view/image/add.png">
             </a>
         </div>
-        <?php $module_row = 0; ?>
+        <?php $module_row = 1; ?>
         <div id="module_wrapper">
         <?php foreach ($modules as $module) { ?>
         <div id="tab_module_<?php echo $module_row; ?>" class="vtabs-content">
@@ -318,7 +326,6 @@
 </div>
 <script type="text/javascript"><!--
 var module_row = <?php echo $module_row; ?>;
-
 $(document).ready(function() {
   initForm();
 

@@ -26,9 +26,17 @@
     <script>
       $(document).ready(function() {
         <?php if ($album['album_data']['use_lazyload']): ?>
-          $('img.lazy').lazyload({
-            effect:"fadeIn"
-          });
+          isMobDevice = (/iphone|ipad|Android|webOS|iPod|BlackBerry|Windows Phone|ZuneWP7/gi).test(navigator.appVersion);
+
+          if(!isMobDevice){
+             $("img.lazy").lazyload({
+                effect: "fadeIn",
+             });
+          }else{
+             $('img.lazy').each(function(){
+                $(this).attr('src',$(this).data('original'));
+             });
+          }
         <?php endif ?>
         <?php 
           switch ($album['album_data']['js_lib_type']) {

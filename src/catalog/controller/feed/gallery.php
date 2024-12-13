@@ -1,6 +1,8 @@
 <?php
 class ControllerFeedGallery extends Controller {
 	public function index() {
+		$this->getChild('common/seo_gallery');
+
 		$output  = '<?xml version="1.0" encoding="UTF-8"?>';
 		$output .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
@@ -16,7 +18,7 @@ class ControllerFeedGallery extends Controller {
 
 		foreach ($albums as $album) {
 			$output .= '<url>';
-			$output .= '<loc>' . str_replace('&', '&amp;', str_replace('&amp;', '&', $this->url->link('gallery/album', 'album_id=' . $album['album_id']))) . '</loc>';
+			$output .= '<loc>' . trim(str_replace('&', '&amp;', str_replace('&amp;', '&', $this->url->link('gallery/photos', 'album_id=' . $album['album_id'])))) . '</loc>';
 			
 			if (isset($album['last_modified']) && $album['last_modified'] != '0000-00-00 00:00:00') {
 				$output .= '<lastmod>' . date('Y-m-d', strtotime($album['last_modified'])) . '</lastmod>';

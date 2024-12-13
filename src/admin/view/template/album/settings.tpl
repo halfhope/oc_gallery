@@ -27,6 +27,12 @@
     <h2><?php echo $text_general_settings ?></h2>
       <table class="form">
         <tr class="s_img1">
+          <td><?php echo $text_feed ?></td>
+          <td>
+            <a href="<?php echo HTTP_CATALOG.'index.php?route=feed/gallery' ?>" target="_blank"><?php echo HTTP_CATALOG.'index.php?route=feed/gallery' ?></a>
+          </td>
+        </tr>
+        <tr class="s_img1">
           <td><?php echo $entry_enable_full_cache ?></td>
           <td>
             <select name="config_gallery_modules_cache_enabled" id="config_gallery_modules_cache_enabled">
@@ -60,6 +66,18 @@
           <td><select name="config_gallery_module_product_layout_id">
             <?php foreach ($layouts as $layout) { ?>
             <?php if ($layout['layout_id'] == $config_gallery_module_product_layout_id) { ?>
+            <option value="<?php echo $layout['layout_id']; ?>" selected="selected"><?php echo $layout['name']; ?></option>
+            <?php } else { ?>
+            <option value="<?php echo $layout['layout_id']; ?>"><?php echo $layout['name']; ?></option>
+            <?php } ?>
+            <?php } ?>
+          </select></td>
+        </tr>
+        <tr class="s_img2">
+          <td><?php echo $entry_hook_layout; ?></td>
+          <td><select name="config_gallery_module_hook_layout_id">
+            <?php foreach ($layouts as $layout) { ?>
+            <?php if ($layout['layout_id'] == $config_gallery_module_hook_layout_id) { ?>
             <option value="<?php echo $layout['layout_id']; ?>" selected="selected"><?php echo $layout['name']; ?></option>
             <?php } else { ?>
             <option value="<?php echo $layout['layout_id']; ?>"><?php echo $layout['name']; ?></option>

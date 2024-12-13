@@ -22,7 +22,14 @@ class ControllerModuleGallery extends Controller {
 		  PRIMARY KEY (`album_id`)
 		) DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
 		
-
+		$sql[] = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "url_alias_gallery` (
+		  `url_alias_id` int(11) NOT NULL AUTO_INCREMENT,
+		  `query` varchar(255) NOT NULL,
+		  `keyword` varchar(255) NOT NULL,
+		  PRIMARY KEY (`url_alias_id`),
+		  KEY `query` (`query`)
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+		
 		// demo data
 		$sql[] = "INSERT INTO `". DB_PREFIX ."setting` (`store_id`, `group`, `key`, `value`, `serialized`) VALUES
 		(0, 'gallery_settings', 'config_galleries_seo_name', 'galleries', 0),
@@ -84,6 +91,7 @@ class ControllerModuleGallery extends Controller {
 		$this->load->model('setting/extension');
 		$this->model_setting_extension->uninstall('module','gallery');
 		
+		$sql[] = "DROP TABLE IF EXISTS `". DB_PREFIX ."url_alias_gallery`";
 		$sql[] = "DROP TABLE IF EXISTS `". DB_PREFIX ."albums`";
 		$sql[] = "DELETE FROM `". DB_PREFIX ."setting` WHERE `group` = 'gallery_settings'";
 		$sql[] = "DELETE FROM `". DB_PREFIX ."setting` WHERE `group` = 'gallery_module'";
@@ -92,6 +100,7 @@ class ControllerModuleGallery extends Controller {
 		$this->cache->delete('album_photos');		
 		$this->cache->delete('album_gallery');		
 		$this->cache->delete('album_module');			
+		$this->cache->delete('seo_pro_gallery');			
 				
 		foreach ($sql as $key => $value) {
 			$query = $this->db->query($value);

@@ -9,32 +9,35 @@ class ControllerAlbumSettings extends Controller {
 		$this->document->setTitle($this->language->get('section_settings'));
 		$this->document->addStyle('view/stylesheet/photo_gallery.manager.css');
 		$this->load->model('album/index');
+		
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			
 			$this->load->model('setting/setting');
 			$this->session->data['success'] = $this->language->get('text_success_settings');
 			$this->model_setting_setting->editSetting('gallery_settings', $this->request->post);
-
-			// Add SEO URL
-			// Get seo query
-			$seo_query = $this->db->query("SELECT * FROM `". DB_PREFIX ."url_alias` WHERE `query` = 'gallery/gallery' LIMIT 1");
-			// (Check) and (update if exists) or (delete if exists and empty)
-			if (empty($seo_query->row)) {
-				if ($this->request->post['config_galleries_seo_name']) {
-					$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias` (`query`, `keyword`) VALUES ('gallery/gallery', '" . $this->db->escape($this->request->post['config_galleries_seo_name']) . "')");
-				}
-			}else{
-				if ((!isset($this->request->post['config_galleries_seo_name'])) || (empty($this->request->post['config_galleries_seo_name']))) {
-					$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
-				}else{
-					$this->db->query("UPDATE `" . DB_PREFIX . "url_alias` SET `query` = 'gallery/gallery', keyword = '" . $this->db->escape($this->request->post['config_galleries_seo_name']) . "' WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
-				}
-			} 
+			
 			$this->cache->delete('gallery_album_photos');		
 			$this->cache->delete('album_photos');		
 			$this->cache->delete('album_gallery');		
 			$this->cache->delete('album_module');		
-			$this->cache->delete('seo_pro');
+			$this->cache->delete('seo_pro_gallery');
+
+			// Add SEO URL
+			// Get seo query
+			$seo_query = $this->db->query("SELECT * FROM `". DB_PREFIX . "url_alias_gallery` WHERE `query` = 'gallery/gallery' LIMIT 1");
+			// (Check) and (update if exists) or (delete if exists and empty)
+			if (empty($seo_query->row)) {
+				if ($this->request->post['config_galleries_seo_name']) {
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias_gallery` (`query`, `keyword`) VALUES ('gallery/gallery', '" . $this->db->escape($this->request->post['config_galleries_seo_name']) . "')");
+				}
+			}else{
+				if ((!isset($this->request->post['config_galleries_seo_name'])) || (empty($this->request->post['config_galleries_seo_name']))) {
+					$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias_gallery` WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
+				}else{
+					$this->db->query("UPDATE `" . DB_PREFIX . "url_alias_gallery` SET `query` = 'gallery/gallery', keyword = '" . $this->db->escape($this->request->post['config_galleries_seo_name']) . "' WHERE `url_alias_id` = '".$seo_query->row['url_alias_id']."'");
+				}
+			} 
+
 			$this->redirect($this->url->link('album/settings', 'token=' . $this->session->data['token'], 'SSL'));
 		}
 		$this->load->model('localisation/language');
@@ -56,6 +59,7 @@ class ControllerAlbumSettings extends Controller {
 		$this->data['config_galleries_include_seo_path'] 		= $this->config->get('config_galleries_include_seo_path');
 		$this->data['config_gallery_module_category_layout_id'] = $this->config->get('config_gallery_module_category_layout_id');
 		$this->data['config_gallery_module_product_layout_id'] 	= $this->config->get('config_gallery_module_product_layout_id');
+		$this->data['config_gallery_module_hook_layout_id'] 	= $this->config->get('config_gallery_module_hook_layout_id');
 
 		$this->data['config_galleries_title'] 					= $this->config->get('config_galleries_title');
 		$this->data['config_galleries_h1_title'] 				= $this->config->get('config_galleries_h1_title');
@@ -67,6 +71,7 @@ class ControllerAlbumSettings extends Controller {
 		$this->data['text_no'] 			= $this->language->get('text_no');
 		$this->data['entry_category_layout'] 	= $this->language->get('entry_category_layout');
 		$this->data['entry_product_layout'] 	= $this->language->get('entry_product_layout');
+		$this->data['entry_hook_layout'] 	= $this->language->get('entry_hook_layout');
 		
 		$this->data['entry_gallery_cover_image_dimension'] 	= $this->language->get('entry_gallery_cover_image_dimension');
 		$this->data['entry_gallery_show_counter'] 			= $this->language->get('entry_gallery_show_counter');
@@ -99,7 +104,8 @@ class ControllerAlbumSettings extends Controller {
 		$this->data['button_text_cancel'] = $this->language->get('button_text_cancel');
 
 		//Settings
-		$this->data['entry_enable_full_cache'] = $this->language->get('entry_enable_full_cache');
+		$this->data['entry_enable_full_cache'] 	= $this->language->get('entry_enable_full_cache');
+		$this->data['text_feed'] 				= $this->language->get('text_feed');
 		//h2
 		$this->data['text_js_library_settings'] = $this->language->get('text_js_library_settings');
 		$this->data['text_albums_settings'] = $this->language->get('text_albums_settings');
