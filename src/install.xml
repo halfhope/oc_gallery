@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+	<name>Photo Gallery</name>
+	<version>1.5</version>
+	<author>shtt.blog</author>
+	<code>oc_photo_gallery</code>
+	<link>http://shtt.blog/</link>
+	<file path="system/config/catalog.php">
+		<operation>
+			<search><![CDATA['startup/seo_url']]></search>
+			<add position="after"><![CDATA[,
+	'extension/module/gallery/seo_gallery']]></add>
+		</operation>
+	</file>
+</modification>

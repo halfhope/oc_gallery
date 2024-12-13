@@ -1,35 +1,42 @@
 <?php
+/**
+* @author Shashakhmetov Talgat <talgatks@gmail.com>
+*/
+
 class ControllerExtensionModuleGallery extends Controller {
 
-	private $error = array();
+	public 	$_route 		= 'extension/module/gallery';
+	public 	$_model 		= 'model_extension_module_gallery';
+
+	private $error = [];
 
 	public function index() {
 		if (!isset($this->request->get['module_id'])) {
-			$this->response->redirect($this->url->link('gallery/gallery', 'user_token=' . $this->session->data['user_token'], 'SSL'));
-		}else{
-			$this->response->redirect($this->url->link('gallery/modules', 'user_token=' . $this->session->data['user_token'] . '&module_id=' . $this->request->get['module_id'], 'SSL'));
+			$this->response->redirect($this->url->link($this->_route . '/gallery', 'user_token=' . $this->session->data['user_token'], 'SSL'));
+		} else {
+			$this->response->redirect($this->url->link($this->_route . '/modules', 'user_token=' . $this->session->data['user_token'] . '&module_id=' . $this->request->get['module_id'], 'SSL'));
 		}
 	}
 
-	public function install(){
+	public function install() {
 		$this->load->model('user/user_group');
 
-		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'gallery/gallery');
-		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'gallery/gallery');
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', $this->_route . '/gallery');
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', $this->_route . '/gallery');
 
-		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'gallery/settings');
-		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'gallery/settings');
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', $this->_route . '/settings');
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', $this->_route . '/settings');
 
-		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'gallery/modules');
-		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'gallery/modules');
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', $this->_route . '/modules');
+		$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', $this->_route . '/modules');
 
-		$this->language->load('gallery/gallery');
+		$this->language->load($this->_route);
 
-		$sql_layout_names = array(
-			'gallery/galleries' 	=> $this->language->get('text_layout_galleries'),
-			'gallery/gallery' 	=> $this->language->get('text_layout_photos'),
+		$sql_layout_names = [
+			$this->_route . '/galleries' 	=> $this->language->get('text_layout_galleries'),
+			$this->_route . '/gallery' 	=> $this->language->get('text_layout_gallery'),
 			'error/not_found' 	=> $this->language->get('text_layout_not_found')
-		);
+		];
 
 		$sql[] = "CREATE TABLE IF NOT EXISTS `". DB_PREFIX ."gallery` (
 			`gallery_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -46,7 +53,7 @@ class ControllerExtensionModuleGallery extends Controller {
 			`store_id` int(11) NOT NULL
 		) DEFAULT CHARSET=utf8;";
 
-		$sql[] = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "seo_url_gallery` (
+		$sql[] = "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "url_alias_gallery` (
 			`url_alias_id` int(11) NOT NULL AUTO_INCREMENT,
 			`query` varchar(255) NOT NULL,
 			`keyword` varchar(255) NOT NULL,
@@ -56,15 +63,16 @@ class ControllerExtensionModuleGallery extends Controller {
 		) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
 
 		$this->load->model('setting/store');
-		$default_store[] = array(
+		$default_store[] = [
 			'store_id' => 0
-		);
+		];
 		$stores = array_merge($default_store, $this->model_setting_store->getStores());
+		$settings = [];
+
 		$this->load->model('localisation/language');
-		
+
 		$languages = $this->model_localisation_language->getLanguages();
-		$settings = array();
-		
+
 		foreach ($stores as $store) {
 			$store_id = $store['store_id'];
 			$settings['galleries_seo_name'][$store_id]			= 'gallery';
@@ -82,13 +90,13 @@ class ControllerExtensionModuleGallery extends Controller {
 				$settings['galleries_meta_description'][$store_id][$language['language_id']]	= '';
 				$settings['galleries_description'][$store_id][$language['language_id']]			= '';
 			}
-			$sql[] = "INSERT INTO `" . DB_PREFIX . "seo_url_gallery` (`query`, `keyword`, `store_id`) VALUES ('gallery/galleries', 'galleries', " . $store_id . ")";
+			$sql[] = "INSERT INTO `" . DB_PREFIX . "url_alias_gallery` (`query`, `keyword`, `store_id`) VALUES ('" . $this->_route . "/galleries', 'galleries', " . (int) $store['store_id'] . ")";
 		}
 
 		$sql_values = [];
 		foreach ($settings as $key => $value) {
 			$setting = $this->db->escape(json_encode($value));
-			$sql_values[] = "(0, 'config_gallery', 'config_gallery_$key', '$setting', 1)";
+			$sql_values[] = "(0, 'config_gallery', 'config_gallery_{$key}', '{$setting}', 1)";
 			unset($settings[$key]);
 		}
 		
@@ -102,22 +110,21 @@ class ControllerExtensionModuleGallery extends Controller {
 
 		foreach ($settings as $key => $value) {
 			$setting = $this->db->escape(json_encode($value));
-			$sql_values[] = "(0, 'config_gallery', 'config_gallery_$key', '$setting', 0)";
+			$sql_values[] = "(0, 'config_gallery', 'config_gallery_{$key}', '{$setting}', 0)";
 		}
 
 		$sql[] = "INSERT INTO `". DB_PREFIX ."setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES " . implode(',', $sql_values) . ';';
 
 		foreach ($sql as $key => $value) {
-			$query = $this->db->query($value);
+			$this->db->query($value);
 		}
 
 		foreach ($sql_layout_names as $key => $value) {
-			$result = $this->db->query("SELECT `layout_id` FROM `". DB_PREFIX . "layout` WHERE `name` = '".$value."'");
+			$result = $this->db->query("SELECT `layout_id` FROM `". DB_PREFIX . "layout_route` WHERE `route` = '".$value."'");
 			if (!$result->num_rows) {
 				$this->db->query("INSERT INTO `". DB_PREFIX ."layout` (`name`) VALUES ('".$value."')");
-				$result = $this->db->query("SELECT `layout_id` FROM `". DB_PREFIX . "layout` WHERE `name` = '".$value."'");
 
-				$layout_id = $result->row['layout_id'];
+				$layout_id = $this->db->getLastId();
 
 				if (isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTPS'] == '1'))) {
 					$store_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "store WHERE REPLACE(`ssl`, 'www.', '') = '" . $this->db->escape('https://' . str_replace('www.', '', $_SERVER['HTTP_HOST']) . rtrim(dirname($_SERVER['PHP_SELF']), '/.\\') . '/') . "'");
@@ -134,10 +141,14 @@ class ControllerExtensionModuleGallery extends Controller {
 			}
 		}
 	}
-	public function uninstall(){
-		$this->language->load('gallery/gallery');
 
-		$sql_layout_names = array('gallery/galleries' => $this->language->get('text_layout_galleries'), 'gallery/gallery' => $this->language->get('text_layout_photos'));
+	public function uninstall() {
+		$this->language->load($this->_route);
+
+		$sql_layout_names = [
+			$this->_route . '/galleries' => $this->language->get('text_layout_galleries'), 
+			$this->_route . '/gallery' => $this->language->get('text_layout_gallery')
+		];
 		foreach ($sql_layout_names as $key => $value) {
 			$result = $this->db->query("SELECT `layout_id` FROM `". DB_PREFIX . "layout_route` WHERE `route` = '".$key."'");
 			if (isset($result->row['layout_id'])) {
@@ -149,14 +160,14 @@ class ControllerExtensionModuleGallery extends Controller {
 
 		$this->load->model('user/user_group');
 
-		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'access', 'gallery/gallery');
-		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'modify', 'gallery/gallery');
+		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'access', $this->_route . '/gallery');
+		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'modify', $this->_route . '/gallery');
 
-		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'access', 'gallery/settings');
-		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'modify', 'gallery/settings');
+		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'access', $this->_route . '/settings');
+		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'modify', $this->_route . '/settings');
 
-		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'access', 'gallery/modules');
-		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'modify', 'gallery/modules');
+		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'access', $this->_route . '/modules');
+		$this->model_user_user_group->removePermission($this->user->getGroupId(), 'modify', $this->_route . '/modules');
 
 		$this->load->model('setting/extension');
 		$this->model_setting_extension->uninstall('module','gallery');
@@ -164,18 +175,17 @@ class ControllerExtensionModuleGallery extends Controller {
 		$this->load->model('setting/module');
 		$this->model_setting_module->deleteModulesByCode('gallery');
 
-		$sql[] = "DROP TABLE IF EXISTS `". DB_PREFIX ."seo_url_gallery`";
+		$sql[] = "DROP TABLE IF EXISTS `". DB_PREFIX ."url_alias_gallery`";
 		$sql[] = "DROP TABLE IF EXISTS `". DB_PREFIX ."gallery`";
 		$sql[] = "DROP TABLE IF EXISTS `". DB_PREFIX ."gallery_to_store`";
 		$sql[] = "DELETE FROM `". DB_PREFIX ."setting` WHERE `code` = 'config_gallery'";
 		$sql[] = "DELETE FROM `". DB_PREFIX ."setting` WHERE `code` = 'gallery_module'";
 
-		$this->load->model('gallery/gallery');
-		$this->model_gallery_gallery->clearCache();
+		$this->load->model($this->_route);
+		$this->{$this->_model}->clearCache();
 
 		foreach ($sql as $key => $value) {
 			$query = $this->db->query($value);
 		}
 	}
 }
-?>

@@ -1,0 +1,115 @@
+{{ header }}
+<div id="information-information" class="container">
+	<ul class="breadcrumb">
+		{% for breadcrumb in breadcrumbs %}
+		<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+		{% endfor %}
+	</ul>
+	<div class="row">{{ column_left }}
+		{% if column_left and column_right %}
+			{% set class = 'col-sm-6' %}
+		{% elseif column_left or column_right %}
+			{% set class = 'col-sm-9' %}
+		{% else %}
+			{% set class = 'col-sm-12' %}
+		{% endif %}
+		<div id="content" class="{{ class }}">{{ content_top }}
+			<h1>{{ heading_title }}</h1>
+			
+			{% if (gallery['gallery_data']['show_limiter']) %}
+			<div class="row control-group">
+				<div class="col-md-3 col-md-offset-7 text-right">
+					<label class="control-label" for="input-limit">{{ text_limit }}</label>
+				</div>
+				<div class="col-md-2">
+					<select id="input-limit" class="form-control" onchange="location = this.value;">
+						{% for limits in limits %}
+						{% if limits['value'] == limit %}
+						<option value="{{ limits['href'] }}" selected="selected">{{ limits['text'] }}</option>
+						{% else %}
+						<option value="{{ limits['href'] }}">{{ limits['text'] }}</option>
+						{% endif %}
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+		{% endif %}
+
+		<div class="gallery">
+		<script>
+			$(document).ready(function() {
+				{% if gallery['gallery_data']['use_lazyload'] %}
+					isMobDevice = (/iphone|ipad|Android|webOS|iPod|BlackBerry|Windows Phone|ZuneWP7/gi).test(navigator.appVersion);
+
+					if(!isMobDevice){
+						 $("img.lazy").lazyload({
+								effect: "fadeIn",
+						 });
+					} else {
+						 $('img.lazy').each(function(){
+								$(this).attr('src',$(this).data('original'));
+						 });
+					}
+				{% endif %}
+
+				{% if (gallery['js'] == 'colorbox') %}
+					$('a.{{ gallery['key'] }}').colorbox({rel:'{{ no_conflict }}group{{ gallery['gallery_id'] }}'});
+				{% endif %}
+
+				{% if (gallery['js'] == 'fancybox') %}
+					$('a.{{ gallery['key'] }}').fancybox({openEffect:'none',closeEffect:'none'});
+				{% endif %}
+
+				{% if (gallery['js'] == 'magnific_popup') %}
+					$('.container{{ gallery['key'] }}').magnificPopup({type:'image',delegate: 'a',gallery: {enabled:true}});
+				{% endif %}
+			});
+		</script>
+		{% if gallery['gallery_description'] is defined %}
+			<div class="gallery_description">{{ gallery['gallery_description'] }}</div>
+		{% endif %}
+			<div class="center container{{ gallery['key'] }}">
+				<div class="row">
+				{% for img_key, image in gallery['images'] %}				
+					<div class="{{ gallery['bootstrap_grid'] }} gallery_photo">
+
+						<a class="transition {{ gallery['key'] }} thumbnail" 
+						rel="{{ no_conflict }}group{{ gallery['gallery_id'] }}" 
+						href="{{ image['popup'] }}" 
+
+						{% if (gallery['js'] == 'lightbox') %}
+						data-lightbox="{{ no_conflict }}{{ gallery['gallery_id'] }}" 
+						data-title="{{ image['title'] }}" 
+						{% endif %}
+
+						title="{{ image['title'] }}">
+							<img 
+
+							{% if (gallery['gallery_data']['use_lazyload']) %}
+							class="lazy" src="{{ gallery['gallery_data']['lazyload_image'] }}" data-original="{{ image['thumb'] }}"
+
+							{% else %}
+							src="{{ image['thumb'] }}"
+							{% endif %}
+
+							width="{{ gallery['gallery_data']['thumb_width'] }}" 
+							height="{{ gallery['gallery_data']['thumb_height'] }}" 
+							alt="{{ image['title'] }}" />
+
+							<span>{{ image['title'] }}</span>
+						</a>
+
+					</div>
+				{% endfor %}
+				</div>
+			</div>
+		</div>
+		{% if show_pagination %}
+			<div class="row col-sm-12">
+				<div class="pagination">{{ pagination }}</div>
+			</div>
+		{% endif %}
+			{{ content_bottom }}</div>
+		{{ column_right }}</div>
+</div>
+{{ footer }}

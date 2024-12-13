@@ -1,0 +1,26 @@
+<div class="gallery_gallery_grid">
+{% if show_header %}
+	<h3>{{ heading_title }}</h3>
+	{% endif %}
+	<div class="row">
+		<div class="galleries col-sm-12 ">
+			<div class="center">
+				<div class="row">
+				{% for key, gallery in galleries %}
+					<div class="{{ bootstrap_grid }} gallery_cover">
+						<a class="transition thumbnail" href="{{ gallery['gallery_link'] }}">
+							<img src="{{ gallery['gallery_data']['cover_image']['thumb'] }}" width="{{ cover_image_width }}" height="{{ cover_image_height }}" alt="{{ gallery['gallery_name'] }}" />
+							<span>{{ gallery['gallery_name'] }}</span>
+						</a>
+					</div>
+				{% endfor %}
+				</div>
+			</div>
+			{% if show_gallery_galleries_link %}
+				<div class="pull-right">
+					<a href="{{ galleries_link }}" class="btn btn-default">{{ gallery_galleries_link_text }}</a>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
