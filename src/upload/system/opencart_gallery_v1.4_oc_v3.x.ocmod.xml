@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+	<name>Gallery images menu</name>
+	<version>1.0</version>
+	<author>shtt.blog</author>
+	<code>shtt.blog_gallery_images</code>
+	<link>http://shtt.blog/</link>
+	<file path="admin/controller/common/column_left.php">
+		<operation>
+			<search><![CDATA[if ($catalog) {]]></search>
+			<add position="before"><![CDATA[
+			if ($this->user->hasPermission('access', 'gallery/gallery')) {		
+				$this->language->load('extension/module/gallery');
+				$children = [];
+				$children[] = [
+					'name'	   => $this->language->get('text_gallery_gallery'),
+					'href'     => $this->url->link('gallery/gallery', 'user_token=' . $this->session->data['user_token'], true),
+					'children' => []
+				];
+				$children[] = [
+					'name'	   => $this->language->get('text_gallery_modules'),
+					'href'     => $this->url->link('gallery/modules', 'user_token=' . $this->session->data['user_token'], true),
+					'children' => []
+				];
+				$children[] = [
+					'name'	   => $this->language->get('text_gallery_settings'),
+					'href'     => $this->url->link('gallery/settings', 'user_token=' . $this->session->data['user_token'], true),
+					'children' => []
+				];
+				$catalog[] = [
+					'name'	   => $this->language->get('text_gallery'),
+					'href'     => $this->url->link('gallery/gallery', 'user_token=' . $this->session->data['user_token'], true),
+					'children' => $children
+				];
+			}
+			]]></add>
+		</operation>
+	</file>
+	<file path="system/config/catalog.php">
+		<operation>
+			<search><![CDATA['startup/seo_url']]></search>
+			<add position="after"><![CDATA[,
+	'startup/seo_gallery']]></add>
+		</operation>
+	</file>
+</modification>

@@ -1,0 +1,854 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="pull-right">
+				<a href="#" onclick="$('#form-modules').submit();return false;" data-toggle="tooltip" title="{{ button_text_save }}" class="btn btn-primary"><i class="fa fa-save"></i></a>
+				<a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_text_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div>
+			<h1>{{ heading_title }}</h1>
+			<ul class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+				<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
+	<div class="container-fluid">
+
+		<div class="panel">
+			<ul class="nav nav-pills">
+				<li role="presentation"><a href="{{ link_section_gallery_list }}"><i class="fa fa-list fa-fw"></i> {{ text_section_gallery_list }}</a></li>
+				<li role="presentation" class="active"><a href="{{ link_section_modules }}"><i class="fa fa-puzzle-piece fa-fw"></i> {{ text_section_modules }}</a></li>
+				<li role="presentation"><a href="{{ link_section_settings }}"><i class="fa fa-cog fa-fw"></i> {{ text_section_settings }}</a></li>
+			</ul>
+		</div>
+
+		{% if error_warning %}
+		<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
+		</div>
+		{% endif %}
+		{% if success %}
+		<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
+		</div>
+		{% endif %}
+
+		<div class="alert alert-info"><i class="fa fa-info-circle"></i> {{ text_layout }}
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
+		</div>
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3>
+			</div>
+			<div class="panel-body">
+			 <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-modules" class="form-horizontal">
+				<div id="tabs" class="vtabs">
+				{% set module_row = 1 %}
+					{% for key, module in modules %}
+						<a href="#tab_module_{{ module_row }}" id="a_tab_module_{{ module_row }}" class="tab_btn tab_module_{{ key }} {{ selected_module_id is defined and key == selected_module_id ? 'selected' : '' }}">
+							{{ module['name'] }}
+							<i class="fa fa-minus-square fa-fw" onclick="$('#tab_module_{{ module_row }}, #a_tab_module_{{ module_row }}').remove(); $('#tabs a.tab_btn:last').click(); return false;"></i>
+						</a>
+						{% set module_row = module_row + 1 %}
+					{% endfor %}
+					<a href="#" id="add_module_btn">{{ button_text_add_module }} <i class="fa fa-plus-square fa-fw"></i></a>
+				</div>
+				<div id="module_wrapper">
+				{% set module_row = 1 %}
+				{% for key, module in modules %}
+				<div id="tab_module_{{ module_row }}" class="vtabs-content">
+				<div class="tab-content">
+
+				<input type="hidden" name="gallery_module[{{ module_row }}][module_id]" value="{{ module['module_id'] }}">
+
+			<div class="form-group required">
+				<label class="col-sm-2 control-label" for="gallery_module_{{ module_row }}_name"><span data-toggle="tooltip" title="{{ entry_module_name_help }}">{{ entry_module_name }}</span></label>
+				<div class="col-sm-10">
+					<input type="text" data-id="{{ module_row }}" name="gallery_module[{{ module_row }}][name]" value="{{ module['name'] }}" placeholder="{{ entry_module_name }}" id="gallery_module_{{ module_row }}_name" class="form-control name-changer" />
+				</div>
+			</div>
+
+			<div class="form-group ">
+				<label class="col-sm-2 control-label" for="gallery_module_{{ module_row }}_header">{{ entry_module_header }}</label>
+				<div class="col-sm-10">
+				{% for language in languages %}
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="input-group">
+								<span class="input-group-addon">{{ language['html_image'] }}</span>
+								<input type="text" name="gallery_module[{{ module_row }}][header][{{ language['language_id'] }}]" value="{{ module['header'][language['language_id']] is defined ? module['header'][language['language_id']] : '' }}" placeholder="{{ entry_module_header }}" id="gallery_module[{{ module_row }}][header][{{ language['language_id'] }}]" class="form-control"/>
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<select class="form-control" name="gallery_module[{{ module_row }}][show_header][{{ language['language_id'] }}]">
+							{% if module['show_header'][language['language_id']] %}
+								<option value="1" selected="selected">{{ text_enabled }}</option>
+								<option value="0">{{ text_disabled }}</option>
+								{% else %}
+								<option value="1">{{ text_enabled }}</option>
+								<option value="0" selected="selected">{{ text_disabled }}</option>
+								{% endif %}
+							</select>
+						</div>
+					</div>
+					<br>
+				{% endfor %}
+				</div>
+			</div>
+
+			<div class="form-group ">
+				<label class="col-sm-2 control-label" for="gallery_module_{{ module_row }}_module_type">{{ entry_module_type }}</label>
+				<div class="col-sm-10">
+					<select name="gallery_module[{{ module_row }}][module_type]" data-id="{{ module_row }}" id="gallery_module_{{ module_row }}_module_type" class="form-control type-changer">
+						{% for key, module_type in module_types %}
+							{% if key == module['module_type'] %}
+								<option value="{{ key }}" selected="selected">{{ module_type }}</option>
+							{% else %}
+								<option value="{{ key }}">{{ module_type }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group s_img1{{ module_row }}">
+				<label class="col-sm-2 control-label" for="input-process-status"><span data-toggle="tooltip" title="{{ entry_photo_gallery_list_help }}">{{ entry_photo_gallery_list }}</span></label>
+				<div class="col-sm-10">
+					<div class="well well-sm" style="height: 150px; overflow: auto;">
+						{% for gallery in galleries %}
+						<div class="checkbox">
+							<label>
+								{% if gallery['gallery_id'] in module['gallery_list'] %}
+								<input type="checkbox" name="gallery_module[{{ module_row }}][gallery_list][]" value="{{ gallery['gallery_id'] }}" checked="checked" />
+								{{ gallery['gallery_data']['gallery_name'][config_admin_language_id] }}
+								{% else %}
+								<input type="checkbox" name="gallery_module[{{ module_row }}][gallery_list][]" value="{{ gallery['gallery_id'] }}" />
+								{{ gallery['gallery_data']['gallery_name'][config_admin_language_id] }}
+								{% endif %}
+							</label>
+						</div>
+						{% endfor %}
+					</div>
+				<a onclick="$(this).parent().find(':checkbox').prop('checked', true);">{{ text_select_all }}</a> / <a onclick="$(this).parent().find(':checkbox').prop('checked', false);">{{ text_unselect_all }}</a></div>
+			</div>
+
+			<div class="form-group s_img1{{ module_row }}">
+				<label class="col-sm-2 control-label">{{ entry_show_covers }}</label>
+				<div class="col-sm-10">
+					<label class="radio-inline">
+						{% if module['show_covers'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_covers]" value="1" checked="checked" />
+						{{ text_yes }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_covers]" value="1" />
+						{{ text_yes }}
+						{% endif %}
+					</label>
+					<label class="radio-inline">
+						{% if not module['show_covers'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_covers]" value="0" checked="checked" />
+						{{ text_no }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_covers]" value="0" />
+						{{ text_no }}
+						{% endif %}
+					</label>
+				</div>
+			</div>
+
+			<div class="form-group s_img1{{ module_row }}">
+				<label class="col-sm-2 control-label" for="gallery_module[{{ module_row }}][cover_image_width]">{{ entry_cover_size }}</label>
+				<div class="col-sm-10">
+					<div class="row">
+						<div class="col-sm-6">
+							<input type="text" name="gallery_module[{{ module_row }}][cover_image_width]" value="{{ module['cover_image_width'] }}" placeholder="{{ entry_cover_size }}" id="gallery_module[{{ module_row }}][cover_image_width]" class="form-control" />
+						</div>
+						<div class="col-sm-6">
+							<input type="text" name="gallery_module[{{ module_row }}][cover_image_height]" value="{{ module['cover_image_height'] }}" placeholder="{{ entry_cover_size }}" id="gallery_module[{{ module_row }}][cover_image_height]" class="form-control" />
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-group s_img1{{ module_row }}">
+				<label class="col-sm-2 control-label">{{ entry_show_counter }}</label>
+				<div class="col-sm-10">
+					<label class="radio-inline">
+						{% if module['show_counter'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_counter]" value="1" checked="checked" />
+						{{ text_yes }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_counter]" value="1" />
+						{{ text_yes }}
+						{% endif %}
+					</label>
+					<label class="radio-inline">
+						{% if not module['show_counter'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_counter]" value="0" checked="checked" />
+						{{ text_no }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_counter]" value="0" />
+						{{ text_no }}
+						{% endif %}
+					</label>
+				</div>
+			</div>
+
+			<div class="form-group s_img1{{ module_row }}">
+				<label class="col-sm-2 control-label">{{ entry_show_gallery_galleries_link }}</label>
+				<div class="col-sm-10">
+					<label class="radio-inline">
+						{% if module['show_gallery_galleries_link'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_galleries_link]" value="1" checked="checked" />
+						{{ text_yes }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_galleries_link]" value="1" />
+						{{ text_yes }}
+						{% endif %}
+					</label>
+					<label class="radio-inline">
+						{% if not module['show_gallery_galleries_link'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_galleries_link]" value="0" checked="checked" />
+						{{ text_no }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_galleries_link]" value="0" />
+						{{ text_no }}
+						{% endif %}
+					</label>
+				</div>
+			</div>
+
+			<div class="form-group s_img1{{ module_row }}">
+				<label class="col-sm-2 control-label" for="gallery_module[{{ module_row }}][gallery_galleries_link_text]">{{ entry_show_gallery_text }}</label>
+				<div class="col-sm-10">
+					<div class="row">
+				{% for language in languages %}
+					<div class="col-sm-6">
+					<div class="input-group">
+						<span class="input-group-addon">{{ language['html_image'] }}</span>
+						<input type="text" name="gallery_module[{{ module_row }}][gallery_galleries_link_text][{{ language['language_id'] }}]" value="{{ module['gallery_galleries_link_text'][language['language_id']] }}" placeholder="{{ entry_show_gallery_text }}" id="gallery_module[{{ module_row }}][gallery_galleries_link_text][{{ language['language_id'] }}]" class="form-control" />
+					</div>
+					</div>
+				{% endfor %}
+					</div>
+				</div>
+			</div>
+			<div class="form-group s_img2{{ module_row }}">
+				<label class="col-sm-2 control-label" for="input-process-status"><span data-toggle="tooltip" title="{{ entry_photo_gallery_list_help }}">{{ entry_photo_gallery_list }}</span></label>
+				<div class="col-sm-10">
+					<div class="well well-sm" style="height: 150px; overflow: auto;">
+						{% for gallery in galleries %}
+						<div class="checkbox">
+							<label>
+								{% if gallery['gallery_id'] in module['photo_gallery_list'] %}
+								<input type="checkbox" name="gallery_module[{{ module_row }}][photo_gallery_list][]" value="{{ gallery['gallery_id'] }}" checked="checked" />
+								{{ gallery['gallery_data']['gallery_name'][config_admin_language_id] }}
+								{% else %}
+								<input type="checkbox" name="gallery_module[{{ module_row }}][photo_gallery_list][]" value="{{ gallery['gallery_id'] }}" />
+								{{ gallery['gallery_data']['gallery_name'][config_admin_language_id] }}
+								{% endif %}
+							</label>
+						</div>
+						{% endfor %}
+					</div>
+				<a onclick="$(this).parent().find(':checkbox').prop('checked', true);">{{ text_select_all }}</a> / <a onclick="$(this).parent().find(':checkbox').prop('checked', false);">{{ text_unselect_all }}</a></div>
+			</div>
+
+			<div class="form-group s_img2{{ module_row }}">
+				<label class="col-sm-2 control-label">{{ entry_show_gallery_description }}</label>
+				<div class="col-sm-10">
+					<label class="radio-inline">
+						{% if module['show_gallery_description'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_description]" value="1" checked="checked" />
+						{{ text_yes }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_description]" value="1" />
+						{{ text_yes }}
+						{% endif %}
+					</label>
+					<label class="radio-inline">
+						{% if not module['show_gallery_description'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_description]" value="0" checked="checked" />
+						{{ text_no }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_description]" value="0" />
+						{{ text_no }}
+						{% endif %}
+					</label>
+				</div>
+			</div>
+
+			<div class="form-group s_img2{{ module_row }}">
+				<label class="col-sm-2 control-label" for="gallery_module[{{ module_row }}][gallery_thumb_image_width]">{{ entry_thumb_size_mod }}</label>
+				<div class="col-sm-10">
+					<div class="row">
+						<div class="col-sm-6">
+							<input type="text" name="gallery_module[{{ module_row }}][gallery_thumb_image_width]" value="{{ module['gallery_thumb_image_width'] }}" placeholder="{{ entry_thumb_size_mod }}" id="gallery_module[{{ module_row }}][gallery_thumb_image_width]" class="form-control" />
+						</div>
+						<div class="col-sm-6">
+							<input type="text" name="gallery_module[{{ module_row }}][gallery_thumb_image_height]" value="{{ module['gallery_thumb_image_height'] }}" placeholder="{{ entry_thumb_size_mod }}" id="gallery_module[{{ module_row }}][gallery_thumb_image_height]" class="form-control" />
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-group s_img2{{ module_row }}">
+				<label class="col-sm-2 control-label" for="gallery_module[{{ module_row }}][gallery_popup_image_width]">{{ entry_popup_size_mod }}</label>
+				<div class="col-sm-10">
+					<div class="row">
+						<div class="col-sm-6">
+							<input type="text" name="gallery_module[{{ module_row }}][gallery_popup_image_width]" value="{{ module['gallery_popup_image_width'] }}" placeholder="{{ entry_popup_size_mod }}" id="gallery_module[{{ module_row }}][gallery_popup_image_width]" class="form-control" />
+						</div>
+						<div class="col-sm-6">
+							<input type="text" name="gallery_module[{{ module_row }}][gallery_popup_image_height]" value="{{ module['gallery_popup_image_height'] }}" placeholder="{{ entry_popup_size_mod }}" id="gallery_module[{{ module_row }}][gallery_popup_image_height]" class="form-control" />
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-group s_img2{{ module_row }}">
+				<label class="col-sm-2 control-label" for="gallery_module[{{ module_row }}][photos_limit]"><span data-toggle="tooltip" title="{{ entry_photos_limit_help }}">{{ entry_photos_limit }}</span></label>
+				<div class="col-sm-10">
+					<input type="text" name="gallery_module[{{ module_row }}][photos_limit]" value="{{ module['photos_limit'] }}" placeholder="{{ entry_photos_limit }}" id="gallery_module[{{ module_row }}][photos_limit]" class="form-control" />
+				</div>
+			</div>
+
+			<div class="form-group s_img2{{ module_row }}">
+				<label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ entry_show_gallery_link_help }}">{{ entry_show_gallery_link }}</span></label>
+				<div class="col-sm-10">
+					<label class="radio-inline">
+						{% if module['show_gallery_link'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_link]" value="1" checked="checked" />
+						{{ text_yes }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_link]" value="1" />
+						{{ text_yes }}
+						{% endif %}
+					</label>
+					<label class="radio-inline">
+						{% if not module['show_gallery_link'] %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_link]" value="0" checked="checked" />
+						{{ text_no }}
+						{% else %}
+						<input type="radio" name="gallery_module[{{ module_row }}][show_gallery_link]" value="0" />
+						{{ text_no }}
+						{% endif %}
+					</label>
+				</div>
+			</div>
+
+			<div class="form-group s_img2{{ module_row }}">
+				<label class="col-sm-2 control-label" for="gallery_module[{{ module_row }}][gallery_link_text]">{{ entry_show_gallery_text }}</label>
+				<div class="col-sm-10">
+					<div class="row">
+				{% for language in languages %}
+					<div class="col-sm-6">
+					<div class="input-group">
+					<span class="input-group-addon">{{ language['html_image'] }}</span>
+					<input type="text" name="gallery_module[{{ module_row }}][gallery_link_text][{{ language['language_id'] }}]" value="{{ module['gallery_link_text'][language['language_id']] }}" placeholder="{{ entry_show_gallery_text }}" id="gallery_module[{{ module_row }}][gallery_link_text][{{ language['language_id'] }}]" class="form-control" />
+					</div>
+					</div>
+				{% endfor %}
+					</div>
+				</div>
+			</div>
+
+			<!-- // Bootstrap category grid settings -->
+			<fieldset>
+				<legend>{{ text_grid_settings }}</legend>
+				<div class="form-group">
+					<label class="col-sm-2 control-label" for="input-grid_columns_count">{{ entry_bootstrap_grid }}</label>
+					<div class="col-sm-10">
+						<table class="table table-bordered table-striped bootstrap_grid_table">
+							<tbody>
+								<tr>
+									<td class="text-center"><img src="view/image/bootstrap_grid/extra_small.png" class="img-responsive" alt=""><br>
+										Extra small [None(auto)]</td>
+									<td class="text-center"><img src="view/image/bootstrap_grid/small.png" class="img-responsive" alt=""><br>
+										Small [750px]</td>
+									<td class="text-center"><img src="view/image/bootstrap_grid/medium.png" class="img-responsive" alt=""><br>
+										Medium [970px]</td>
+									<td class="text-center"><img src="view/image/bootstrap_grid/large.png" class="img-responsive" alt=""><br>
+										Large [1170px]</td>
+								</tr>
+								<tr class="values" style="background:#efefef;">
+									{% for prefix, value in module['bootstrap_grid'] %}
+										<td class="text-center">
+											<div class="btn-group" role="group" data-toggle="buttons">
+												{% for bcol, col in bootstrap_grid_to_cols %}
+													<label class="btn btn-sm{{ bcol == 0 ? ' btn-success' : ' btn-primary' }}{{ value == bcol ? ' active' : '' }}">
+														<input type="radio" name="gallery_module[{{ module_row }}][bootstrap_grid][{{ prefix }}]" value="{{ bcol }}" autocomplete="off" {{ value == bcol ? 'checked' : '' }}>{{ bcol == 0 ? 'auto' : col }}
+													</label>
+												{% endfor %}
+											</div>
+										</td>
+									{% endfor %}
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</fieldset>
+
+			<div class="form-group ">
+				<label class="col-sm-2 control-label" for="gallery_module_{{ module_row }}_status">{{ entry_status }}</label>
+				<div class="col-sm-10">
+					<select name="gallery_module[{{ module_row }}][status]" id="gallery_module_{{ module_row }}_status" class="form-control">
+						{% if module['status'] %}
+						<option value="1" selected="selected">{{ text_enabled }}</option>
+						<option value="0">{{ text_disabled }}</option>
+						{% else %}
+						<option value="1">{{ text_enabled }}</option>
+						<option value="0" selected="selected">{{ text_disabled }}</option>
+						{% endif %}
+					</select>
+				</div>
+			</div>
+		</div>
+				</div>
+				{% set module_row = module_row + 1 %}
+				{% endfor %}
+				</div>
+				</form>
+			</div>
+		</div>
+	</div>
+<script>
+	$.fn.tabs=function() {
+		var b=this;this.each(function()  {
+			var a=$(this);
+			$(a.attr("href")).hide();
+			$(a).click(function() {
+				$(b).removeClass("selected");
+				$(b).each(function(b,a){
+					$($(a).attr("href")).hide()
+				});
+				$(this).addClass("selected");
+				$($(this).attr("href")).show();
+				return!1
+			});
+		});
+		$(this).show();
+		$(this).first().click();
+	}
+	{% if selected_module_id is defined %}
+		$('#tab_module_{{ selected_module_id }}').show();
+		$('a.tab_module_{{ selected_module_id }}').click();
+	{% else %}
+		$('#tab_module_1').show();
+		$('#a_tab_module_1').click();
+	{% endif %}
+
+</script>
+<style>
+.vtabs {
+		position: absolute;
+		width: 190px;
+		padding: 10px 0;
+		min-height: 300px;
+		float: left;
+		display: block;
+		border-right: 1px solid #DDD
+}
+.vtabs a {
+		display: none
+}
+.vtabs a,
+.vtabs span {
+		display: block;
+		float: left;
+		border-radius: 3px 0px 0px 3px;
+		width: 190px;
+		margin-bottom: 5px;
+		clear: both;
+		border-top: 1px solid #DDD;
+		border-left: 1px solid #DDD;
+		border-bottom: 1px solid #DDD;
+		background: #F7F7F7;
+		padding: 6px;
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: 13px;
+		font-weight: 700;
+		text-align: right;
+		text-decoration: none;
+		border-right: 1px solid #ddd;
+}
+.vtabs a.selected {
+		background: #FFF;
+		border-right: 1px solid #fff;
+}
+.vtabs a img,
+.vtabs span img {
+		position: relative;
+		top: 3px;
+		cursor: pointer
+}
+.vtabs-content {
+		margin-left: 205px
+}
+</style>
+<script type="text/javascript"><!--
+var module_row = {{ module_row }};
+
+$(document).ready(function() {
+
+	$('#add_module_btn').click(function(event) {
+		event.preventDefault();
+		addModule();
+	});
+	$('.name-changer').on('change, paste, keyup', function(event) {
+		event.preventDefault();
+		var row_id = $(this).attr('data-id');
+		var remove_btn = "<i class=\"fa fa-minus-square fa-fw\" onclick=\"$('#tab_module_"+ row_id +", #a_tab_module_"+ row_id +"').remove(); $('#tabs a.tab_btn:last').click();return false;\"></i>";
+		$('#a_tab_module_' + row_id).html($(this).val()+remove_btn);
+	});
+	$('.type-changer').on('change', function(){
+		var m_row = $(this).attr('data-id');
+		var m_val = parseInt($(this).val());
+		switch (m_val){
+			case 0:
+				$('.s_img1'+m_row).show();
+				$('.s_img2'+m_row).hide();
+			break;
+			case 1:
+				$('.s_img1'+m_row).hide();
+				$('.s_img2'+m_row).show();
+			break;
+		}
+	});
+	initForm();
+	$('#tabs a').tabs();
+
+});
+function initForm(){
+	$('#tabs a').tabs();
+	$.each($('.type-changer'), function(index, val) {
+		var m_row = $(val).attr('data-id');
+		var m_val = parseInt($(val).val());
+		switch (m_val){
+			case 0:
+				$('.s_img1'+m_row).show();
+				$('.s_img2'+m_row).hide();
+			break;
+			case 1:
+				$('.s_img1'+m_row).hide();
+				$('.s_img2'+m_row).show();
+			break;
+		}
+	});
+}
+function addModule() {
+	html ='<div id="tab_module_' + module_row + '" class="vtabs-content">';
+
+	html +='<div class="tab-content">';
+	html +='<div class="form-group required">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module_' + module_row + '_name"><span data-toggle="tooltip" title="{{ entry_module_name_help }}">{{ entry_module_name }}</span></label>';
+	html +='<div class="col-sm-10">';
+	html +='<input type="text"  data-id="' + module_row + '" name="gallery_module[' + module_row + '][name]" value="{{ text_new_module_name }}" placeholder="{{ entry_module_name }}" id="gallery_module_' + module_row + '_name" class="form-control name-changer" />';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group ">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module_' + module_row + '_header_{{ language['language_id'] }}">{{ entry_module_header }}</label>';
+	html +='<div class="col-sm-10">';
+	{% for language in languages %}
+	html +='<div class="row">';
+	html +='<div class="col-sm-6">';
+	html +='<div class="input-group">';
+	html +='<span class="input-group-addon">{{ language['html_image'] }}</span>';
+	html +='<input type="text" data-id="' + module_row + '" name="gallery_module[' + module_row + '][header][{{ language['language_id'] }}]" value="{{ text_new_module_name }}" placeholder="{{ entry_module_header }}" id="gallery_module[' + module_row + '][header][{{ language['language_id'] }}]" class="form-control" />';
+	html +='</div>';
+	html +='</div>';
+	html +='<div class="col-sm-6">';
+	html +='<select class="form-control" name="gallery_module[' + module_row + '][show_header][{{ language['language_id'] }}]">';
+	html +='<option value="1" selected="selected">{{ text_enabled }}</option>';
+	html +='<option value="0">{{ text_disabled }}</option>';
+	html +='</select>';
+	html +='</div>';
+	html +='</div>';
+	html +='</br>';
+	{% endfor %}
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group ">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module_' + module_row + '_module_type">{{ entry_module_type }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<select name="gallery_module[' + module_row + '][module_type]" data-id="' + module_row + '" id="gallery_module_' + module_row + '_module_type" class="form-control type-changer">';
+	{% for key, module_type in module_types %}
+	html +='<option value="{{ key }}">{{ module_type }}</option>';
+	{% endfor %}
+	html +='</select>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img1' + module_row + '">';
+	html +='<label class="col-sm-2 control-label" for="input-process-status"><span data-toggle="tooltip" title="{{ entry_photo_gallery_list_help }}">{{ entry_photo_gallery_list }}</span></label>';
+	html +='<div class="col-sm-10">';
+	html +='<div class="well well-sm" style="height: 150px; overflow: auto;">';
+	{% for gallery in galleries %}
+	html +='<div class="checkbox">';
+	html +='<label>';
+	html +='<input type="checkbox" name="gallery_module[' + module_row + '][gallery_list][]" value="{{ gallery['gallery_id'] }}" />';
+	html +='&nbsp;{{ gallery['gallery_data']['gallery_name'][config_admin_language_id] }}';
+	html +='</label>';
+	html +='</div>';
+	{% endfor %}
+	html +='</div>';
+	html +='<a onclick="$(this).parent().find(\':checkbox\').prop(\'checked\', true);">{{ text_select_all }}</a> / <a onclick="$(this).parent().find(\':checkbox\').prop(\'checked\', false);">{{ text_unselect_all }}</a></div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img1' + module_row + '">';
+	html +='<label class="col-sm-2 control-label">{{ entry_show_covers }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_covers]" value="1" />';
+	html +='&nbsp;{{ text_yes }}';
+	html +='</label>';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_covers]" value="0" checked="checked" />';
+	html +='&nbsp;{{ text_no }}';
+	html +='</label>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img1' + module_row + '">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module[' + module_row + '][cover_image_width]">{{ entry_cover_size }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<div class="row">';
+	html +='<div class="col-sm-6">';
+	html +='<input type="text" name="gallery_module[' + module_row + '][cover_image_width]" value="228" placeholder="{{ entry_cover_size }}" id="gallery_module[' + module_row + '][cover_image_width]" class="form-control" />';
+	html +='</div>';
+	html +='<div class="col-sm-6">';
+	html +='<input type="text" name="gallery_module[' + module_row + '][cover_image_height]" value="228" placeholder="{{ entry_cover_size }}" id="gallery_module[' + module_row + '][cover_image_height]" class="form-control" />';
+	html +='</div>';
+	html +='</div>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img1' + module_row + '">';
+	html +='<label class="col-sm-2 control-label">{{ entry_show_counter }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_counter]" value="1" checked="checked" />';
+	html +='&nbsp;{{ text_yes }}';
+	html +='</label>';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_counter]" value="0" />';
+	html +='&nbsp;{{ text_no }}';
+	html +='</label>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img1' + module_row + '">';
+	html +='<label class="col-sm-2 control-label">{{ entry_show_gallery_galleries_link }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_gallery_galleries_link]" value="1" checked="checked" />';
+	html +='&nbsp;{{ text_yes }}';
+	html +='</label>';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_gallery_galleries_link]" value="0" />';
+	html +='&nbsp;{{ text_no }}';
+	html +='</label>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img1' + module_row + '">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module[' + module_row + '][gallery_galleries_link_text]">{{ entry_show_gallery_text }}</label>';
+	html +='<div class="col-sm-10"><div class="row">';
+	{% for language in languages %}
+	html +='<div class="col-sm-6">';
+	html +='<div class="input-group">';
+	html +='<span class="input-group-addon">{{ language['html_image'] }}</span>';
+	html +='<input type="text" name="gallery_module[' + module_row + '][gallery_galleries_link_text][{{ language['language_id'] }}]" value="{{ text_show_galleries_text }}" placeholder="{{ entry_show_gallery_text }}" id="gallery_module[' + module_row + '][gallery_galleries_link_text][{{ language['language_id'] }}]" class="form-control" />';
+	html +='</div>';
+	html +='</div>';
+	{% endfor %}
+	html +='</div></div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img2' + module_row + '">';
+	html +='<label class="col-sm-2 control-label" for="input-process-status"><span data-toggle="tooltip" title="{{ entry_photo_gallery_list_help }}">{{ entry_photo_gallery_list }}</span></label>';
+	html +='<div class="col-sm-10">';
+	html +='<div class="well well-sm" style="height: 150px; overflow: auto;">';
+	{% for gallery in galleries %}
+	html +='<div class="checkbox">';
+	html +='<label>';
+	html +='<input type="checkbox" name="gallery_module[' + module_row + '][photo_gallery_list][]" value="{{ gallery['gallery_id'] }}" />';
+	html +='&nbsp;{{ gallery['gallery_data']['gallery_name'][config_admin_language_id] }}';
+	html +='</label>';
+	html +='</div>';
+	{% endfor %}
+	html +='</div>';
+	html +='<a onclick="$(this).parent().find(\':checkbox\').prop(\'checked\', true);">{{ text_select_all }}</a> / <a onclick="$(this).parent().find(\':checkbox\').prop(\'checked\', false);">{{ text_unselect_all }}</a></div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img2' + module_row + '">';
+	html +='<label class="col-sm-2 control-label">{{ entry_show_gallery_description }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_gallery_description]" value="1" />';
+	html +='&nbsp;{{ text_yes }}';
+	html +='</label>';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_gallery_description]" value="0" checked="checked" />';
+	html +='&nbsp;{{ text_no }}';
+	html +='</label>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img2' + module_row + '">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module[' + module_row + '][gallery_thumb_image_width]">{{ entry_thumb_size_mod }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<div class="row">';
+	html +='<div class="col-sm-6">';
+	html +='<input type="text" name="gallery_module[' + module_row + '][gallery_thumb_image_width]" value="228" placeholder="{{ entry_thumb_size_mod }}" id="gallery_module[' + module_row + '][gallery_thumb_image_width]" class="form-control" />';
+	html +='</div>';
+	html +='<div class="col-sm-6">';
+	html +='<input type="text" name="gallery_module[' + module_row + '][gallery_thumb_image_height]" value="228" placeholder="{{ entry_thumb_size_mod }}" id="gallery_module[' + module_row + '][gallery_thumb_image_height]" class="form-control" />';
+	html +='</div>';
+	html +='</div>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img2' + module_row + '">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module[' + module_row + '][gallery_popup_image_width]">{{ entry_popup_size_mod }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<div class="row">';
+	html +='<div class="col-sm-6">';
+	html +='<input type="text" name="gallery_module[' + module_row + '][gallery_popup_image_width]" value="500" placeholder="{{ entry_popup_size_mod }}" id="gallery_module[' + module_row + '][gallery_popup_image_width]" class="form-control" />';
+	html +='</div>';
+	html +='<div class="col-sm-6">';
+	html +='<input type="text" name="gallery_module[' + module_row + '][gallery_popup_image_height]" value="500" placeholder="{{ entry_popup_size_mod }}" id="gallery_module[' + module_row + '][gallery_popup_image_height]" class="form-control" />';
+	html +='</div>';
+	html +='</div>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img2' + module_row + '">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module[' + module_row + '][photos_limit]"><span data-toggle="tooltip" title="{{ entry_photos_limit_help }}">{{ entry_photos_limit }}</span></label>';
+	html +='<div class="col-sm-10">';
+	html +='<input type="text" name="gallery_module[' + module_row + '][photos_limit]" value="8" placeholder="{{ entry_photos_limit }}" id="gallery_module[' + module_row + '][photos_limit]" class="form-control" />';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img2' + module_row + '">';
+	html +='<label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ entry_show_gallery_link_help }}">{{ entry_show_gallery_link }}</span></label>';
+	html +='<div class="col-sm-10">';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_gallery_link]" value="1" checked="checked" />';
+	html +='&nbsp;{{ text_yes }}';
+	html +='</label>';
+	html +='<label class="radio-inline">';
+	html +='<input type="radio" name="gallery_module[' + module_row + '][show_gallery_link]" value="0" />';
+	html +='&nbsp;</label>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='<div class="form-group s_img2' + module_row + '">';
+		html +='<label class="col-sm-2 control-label" for="gallery_module[' + module_row + '][gallery_link_text]">{{ entry_show_gallery_text }}</label>';
+		html +='<div class="col-sm-10">';
+			html +='<div class="row">';
+			{% for language in languages %}
+			html +='<div class="col-sm-6">';
+				html +='<div class="input-group">';
+					html +='<span class="input-group-addon">{{ language['html_image'] }}</span>';
+					html +='<input type="text" name="gallery_module[' + module_row + '][gallery_link_text][{{ language['language_id'] }}]" value="{{ text_show_gallery_text }}" placeholder="{{ entry_show_gallery_text }}" id="gallery_module[' + module_row + '][gallery_link_text][{{ language['language_id'] }}]" class="form-control" />';
+				html +='</div>';
+			html +='</div>';
+			{% endfor %}
+			html +='</div>';
+		html +='</div>';
+	html +='</div>';
+
+	html +='  <fieldset>';
+	html +='    <legend>{{ text_grid_settings }}</legend>';
+	html +='    <div class="form-group">';
+	html +='      <label class="col-sm-2 control-label" for="input-grid_columns_count">{{ entry_bootstrap_grid }}</label>';
+	html +='      <div class="col-sm-10">';
+	html +='        <table class="table table-bordered table-striped bootstrap_grid_table">';
+	html +='          <tbody>';
+	html +='            <tr>';
+	html +='              <td class="text-center"><img src="view/image/bootstrap_grid/extra_small.png" class="img-responsive" alt=""><br>';
+	html +='                Extra small [None(auto)]</td>';
+	html +='              <td class="text-center"><img src="view/image/bootstrap_grid/small.png" class="img-responsive" alt=""><br>';
+	html +='                Small [750px]</td>';
+	html +='              <td class="text-center"><img src="view/image/bootstrap_grid/medium.png" class="img-responsive" alt=""><br>';
+	html +='                Medium [970px]</td>';
+	html +='              <td class="text-center"><img src="view/image/bootstrap_grid/large.png" class="img-responsive" alt=""><br>';
+	html +='                Large [1170px]</td>';
+	html +='            </tr>';
+	html +='            <tr class="values" style="background:#efefef;">';
+												{% for prefix, value in config_gallery_bootstrap_grid %}
+	html +='                <td class="text-center">';
+	html +='                  <div class="btn-group" role="group" data-toggle="buttons">';
+															{% for bcol, col in bootstrap_grid_to_cols %}
+	html +='                      <label class="btn btn-sm{{ bcol == 0 ? ' btn-success' : ' btn-primary' }}{{ value == bcol ? ' active' : '' }}">';
+	html +='                        <input type="radio" name="gallery_module[{{ module_row }}][bootstrap_grid][{{ prefix }}]" value="{{ bcol }}" autocomplete="off" {{ value == bcol ? 'checked' : '' }}>{{ bcol == 0 ? 'auto' : col }}';
+	html +='                      </label>';
+															{% endfor %}
+	html +='                  </div>';
+	html +='                </td>';
+												{% endfor %}
+	html +='            </tr>';
+	html +='          </tbody>';
+	html +='        </table>';
+	html +='      </div>';
+	html +='    </div>';
+	html +='  </fieldset>';
+
+	html +='<div class="form-group ">';
+	html +='<label class="col-sm-2 control-label" for="gallery_module_' + module_row + '_status">{{ entry_status }}</label>';
+	html +='<div class="col-sm-10">';
+	html +='<select name="gallery_module[' + module_row + '][status]" id="gallery_module_' + module_row + '_status" class="form-control">';
+	html +='<option value="1" selected="selected">{{ text_enabled }}</option>';
+	html +='<option value="0">{{ text_disabled }}</option>';
+	html +='</select>';
+	html +='</div>';
+	html +='</div>';
+
+	html +='</div>';
+
+	html +='</div>';
+
+	$('#module_wrapper').append(html);
+	tab_data = '<a href="#tab_module_' + module_row + '" id="a_tab_module_' + module_row + '" class="tab_btn tab_module_' + module_row + '">';
+	tab_data += '{{ text_new_module_name }} ';
+	tab_data += '<i class="fa fa-minus-square fa-fw" onclick="$(\'#tab_module_' + module_row + ', #a_tab_module_' + module_row + '\').remove();$(\'#tabs a.tab_btn:last\').trigger(\'click\'); return false;"></i>';
+	tab_data += '</a>';
+
+	$('#add_module_btn').before(tab_data);
+
+	initForm();
+	var this_module_row = module_row;
+
+	$('.name-changer').on('change, paste, keyup', function(event) {
+		event.preventDefault();
+		var row_id = $(this).attr('data-id');
+		console.log(row_id);
+		var remove_btn = "<i class=\"fa fa-minus-square fa-fw\" onclick=\"$('#tab_module_"+ row_id +", #a_tab_module_"+ row_id +"').remove(); $('#tabs a.tab_btn:last').click();return false;\"></i>";
+		$('#a_tab_module_' + row_id).html($(this).val()+remove_btn);
+	});
+	$('#a_tab_module_'+ module_row).trigger('click');
+	$('#add_module_btn.selected').removeClass('selected');
+	$('.type-changer').on('change', function(){
+		var m_row = $(this).attr('data-id');
+		var m_val = parseInt($(this).val());
+		switch (m_val){
+			case 0:
+				$('.s_img1'+m_row).show();
+				$('.s_img2'+m_row).hide();
+			break;
+			case 1:
+				$('.s_img1'+m_row).hide();
+				$('.s_img2'+m_row).show();
+			break;
+		}
+	});
+	module_row++;
+}
+//--></script>
+{{ footer }}

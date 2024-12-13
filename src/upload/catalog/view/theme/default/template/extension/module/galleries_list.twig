@@ -1,0 +1,12 @@
+{% if show_header %}
+	<h3>{{ heading_title }}</h3>
+{% endif %}
+<div class="list-group">
+	{% for key, gallery in galleries %}
+		{% if current_gallery_id is defined and gallery['gallery_id'] == current_gallery_id %}
+			<a href="{{ gallery['gallery_link'] }}" class="list-group-item active">{{ gallery['gallery_name'] }}</a>
+		{% else %}
+			<a href="{{ gallery['gallery_link'] }}" class="list-group-item">{{ gallery['gallery_name'] }}</a>
+		{% endif %}
+	{% endfor %}
+</div>
