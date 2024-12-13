@@ -24,7 +24,7 @@
       </div>
     </div>
       <div class="content">
-        <form action="<?php echo (empty($album_id)? $save: $edit) ?>" method="post" enctype="multipart/form-data" id="form">
+        <form action="<?php echo htmlspecialchars_decode((empty($album_id)? $save: $edit)) ?>" method="post" enctype="multipart/form-data" id="form">
         <div id="tabs" class="htabs">
           <a href="#tab-general"><?php echo $tab_general ?></a>
           <a href="#tab-data"><?php echo $tab_data ?></a>
@@ -42,31 +42,9 @@
                 </td>
               </tr>
               <tr class="s_img1">
-                <td><?php echo $entry_album_seo_name ?></td>
+                <td><?php echo $entry_album_seo_name ?><?php echo sprintf('<span class="help">%s</span>', $entry_album_seo_name_help); ?></td>
                 <td><input type="text" size="40" name="album_data[album_seo_url]" id="album_name" value="<?php echo (isset($album_data['album_seo_url']) ? $album_data['album_seo_url'] : '') ?>">
                 </td>
-              </tr>
-              <tr class="s_img1">
-                <td><span class="required">* &nbsp;</span><?php echo $entry_album_type ?></td>
-                <td>
-                  <select name="album_type" id="album_type">
-                    <?php foreach ($album_types as $key => $value): ?>
-                      <option value="<?php echo $key ?>"<?php echo (($album_type == $key)?" selected" : ""); ?>><?php echo $value ?></option>
-                    <?php endforeach ?>
-                  </select>
-                </td>
-              </tr>
-              <tr class="s_img1">
-                <td><?php echo $entry_cover_image ?></td>
-                <td><div class="additional_image transition">
-                    <div class="left">
-                    <div>
-                    <img src="<?php echo $album_data['cover_image']['thumb']; ?>" alt="" id="cover_image" />
-                    <input type="hidden" name="album_data[cover_image][image]" value="<?php echo $album_data['cover_image']['image'] ?>" id="cover_image_handler" />
-                    <br />
-                    <a onclick="imageUpload('cover_image_handler', 'cover_image');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#cover_image').attr('src', '<?php echo $no_image; ?>'); $('#cover_image_handler').attr('value', '');"><?php echo $text_clear; ?></a>
-                    </div></div>
-                  </div></td>
               </tr>
               <tr class="s_img1">
                 <td><?php echo $entry_js_library; ?></td>
@@ -77,7 +55,30 @@
                 </select></td>
               </tr>
               <tr class="s_img1">
-                <td><?php echo $entry_album_status ?></td>
+                <td><?php echo $entry_store ?></td>
+                <td><div class="scrollbox"  style="width:500px;">
+                  <?php $class = 'odd'; ?>
+                  <?php foreach ($stores as $store) { ?>
+                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                  <div class="<?php echo $class; ?>">
+                    <?php if (in_array($store['store_id'], $album_data['stores']) || count($stores) <= 1) { ?>
+                    <input type="checkbox" name="album_data[stores][]" id="stor<?php echo $store['store_id'] ?>" value="<?php echo $store['store_id'] ?>" checked="checked" />
+                    <label for="stor<?php echo $store['store_id'] ?>"><?php echo $store['name']; ?></label>
+                    <?php } else { ?>
+                    <input type="checkbox" name="album_data[stores][]" id="stor<?php echo $store['store_id'] ?>" value="<?php echo $store['store_id'] ?>" />
+                    <label for="stor<?php echo $store['store_id'] ?>"><?php echo $store['name']; ?></label>
+                    <?php } ?>
+                  </div>
+                  <?php } ?>
+                </div>
+                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a>
+                <?php if ($error_stores) { ?>
+                <span class="error"><?php echo $error_stores; ?></span>
+                <?php } ?>
+                </td>
+              </tr>
+              <tr class="s_img1">
+                <td><?php echo $entry_album_status ?><?php echo sprintf('<span class="help">%s</span>', $entry_album_status_help); ?></td>
                 <td>
                   <select name="enabled" id="enabled">
                     <?php if ($enabled) { ?>
@@ -98,7 +99,7 @@
               <h2><?php echo $text_album_page_settings ?></h2>
               <table class="form">
               <tr class="s_img5">
-                <td><?php echo $entry_gallery_photos_limit ?></td>
+                <td><?php echo $entry_gallery_photos_limit ?><?php echo sprintf('<span class="help">%s</span>', $entry_gallery_photos_limit_help); ?></td>
                 <td>
                   <input type="text" name="album_data[photos_limit]" id="photos_limit" size="3" value="<?php echo (isset($album_data['photos_limit'])? $album_data['photos_limit'] : 0) ?>">
                 </td>
@@ -122,6 +123,9 @@
                 <td>
                   <input class="require" type="text" name="album_data[thumb_width]" id="thumb_width" size="3" value="<?php echo $album_data['thumb_width'] ?>">
                   <input class="require" type="text" name="album_data[thumb_height]" id="thumb_height" size="3" value="<?php echo $album_data['thumb_height'] ?>">
+                  <?php if ($error_thumb_image_dimensions) { ?>
+                  <span class="error"><?php echo $error_thumb_image_dimensions; ?></span>
+                  <?php } ?>
                 </td>
               </tr>
               <tr class="s_img5">
@@ -129,6 +133,9 @@
                 <td>
                   <input class="require" type="text" name="album_data[popup_width]" id="popup_width" size="3" value="<?php echo $album_data['popup_width'] ?>">
                   <input class="require" type="text" name="album_data[popup_height]" id="popup_height" size="3" value="<?php echo $album_data['popup_height'] ?>">
+                  <?php if ($error_image_dimensions) { ?>
+                  <span class="error"><?php echo $error_image_dimensions; ?></span>
+                  <?php } ?>
                 </td>
               </tr>
               <tr class="s_img5">
@@ -146,7 +153,7 @@
                 <?php } ?></td>
               </tr>
               <tr class="s_img5">
-                <td><?php echo $entry_use_lazyload; ?></td>
+                <td><?php echo $entry_use_lazyload; ?><?php echo sprintf('<span class="help">%s</span>', $entry_use_lazyload_help); ?></td>
                 <td><?php if ($album_data['use_lazyload']) { ?>
                 <input type="radio" name="album_data[use_lazyload]" value="1" checked="checked" />
                 <?php echo $text_yes; ?>
@@ -160,8 +167,98 @@
                 <?php } ?></td>
               </tr>
               </table>
+              <h2><?php echo $text_bootstrap ?></h2>
+              <table class="form">
+                <tr>
+                  <td><?php echo $entry_number_of_columns_xs ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_xs_help); ?></td>
+                  <td>
+                    <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                      <label class="radio-inline">
+                      <?php if ($album_data['number_of_columns_xs'] == $key): ?>
+                        <input type="radio" name="album_data[number_of_columns_xs]" value="<?php echo $key ?>" checked="checked" />
+                          <?php echo $value; ?>
+                      <?php else: ?>
+                        <input type="radio" name="album_data[number_of_columns_xs]" value="<?php echo $key ?>" />
+                          <?php echo $value; ?>
+                      <?php endif ?>
+                        </label>
+                    <?php endforeach ?>
+                  </td>
+                </tr>
+                <tr>
+                  <td><?php echo $entry_number_of_columns_sm ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_sm_help); ?></td>
+                  <td>
+                    <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                      <label class="radio-inline">
+                      <?php if ($album_data['number_of_columns_sm'] == $key): ?>
+                        <input type="radio" name="album_data[number_of_columns_sm]" value="<?php echo $key ?>" checked="checked" />
+                          <?php echo $value; ?>
+                      <?php else: ?>
+                        <input type="radio" name="album_data[number_of_columns_sm]" value="<?php echo $key ?>" />
+                          <?php echo $value; ?>
+                      <?php endif ?>
+                        </label>
+                    <?php endforeach ?>
+                  </td>
+                </tr>
+                <tr>
+                  <td><?php echo $entry_number_of_columns_md ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_md_help); ?></td>
+                  <td>
+                    <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                      <label class="radio-inline">
+                      <?php if ($album_data['number_of_columns_md'] == $key): ?>
+                        <input type="radio" name="album_data[number_of_columns_md]" value="<?php echo $key ?>" checked="checked" />
+                          <?php echo $value; ?>
+                      <?php else: ?>
+                        <input type="radio" name="album_data[number_of_columns_md]" value="<?php echo $key ?>" />
+                          <?php echo $value; ?>
+                      <?php endif ?>
+                        </label>
+                    <?php endforeach ?>
+                  </td>
+                </tr>
+                <tr>
+                  <td><?php echo $entry_number_of_columns_lg ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_lg_help); ?></td>
+                  <td>
+                    <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                      <label class="radio-inline">
+                      <?php if ($album_data['number_of_columns_lg'] == $key): ?>
+                        <input type="radio" name="album_data[number_of_columns_lg]" value="<?php echo $key ?>" checked="checked" />
+                          <?php echo $value; ?>
+                      <?php else: ?>
+                        <input type="radio" name="album_data[number_of_columns_lg]" value="<?php echo $key ?>" />
+                          <?php echo $value; ?>
+                      <?php endif ?>
+                        </label>
+                    <?php endforeach ?>
+                  </td>
+                </tr>
+
+              </table>
               <h2><?php echo $text_album_data ?></h2>
               <table class="form">
+              <tr class="s_img1">
+                <td><?php echo $entry_cover_image ?></td>
+                <td><div class="additional_image transition">
+                    <div class="left">
+                    <div>
+                    <img src="<?php echo $album_data['cover_image']['thumb']; ?>" alt="" id="cover_image" />
+                    <input type="hidden" name="album_data[cover_image][image]" value="<?php echo $album_data['cover_image']['image'] ?>" id="cover_image_handler" />
+                    <br />
+                    <a onclick="imageUpload('cover_image_handler', 'cover_image');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#cover_image').attr('src', '<?php echo $no_image; ?>'); $('#cover_image_handler').attr('value', '');"><?php echo $text_clear; ?></a>
+                    </div></div>
+                  </div></td>
+              </tr>
+              <tr class="s_img1">
+                <td><span class="required">* &nbsp;</span><?php echo $entry_album_type ?></td>
+                <td>
+                  <select name="album_type" id="album_type">
+                    <?php foreach ($album_types as $key => $value): ?>
+                      <option value="<?php echo $key ?>"<?php echo (($album_type == $key)?" selected" : ""); ?>><?php echo $value ?></option>
+                    <?php endforeach ?>
+                  </select>
+                </td>
+              </tr>
               <!-- Type1 -->
               <tr class="s_img2">
                 <td><?php echo $entry_include_additional_images; ?></td>
@@ -194,22 +291,44 @@
                   </div>
                   <?php } ?>
                 </div>
-                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
+                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a>
+                <?php if ($error_categories) { ?>
+                  <span class="error"><?php echo $error_categories; ?></span>
+                <?php } ?>
+                </td>
               </tr>
               <!-- Type2 -->
               <tr class="s_img3">
-                <td><?php echo $entry_directory ?></td>
+                <td><?php echo $text_check_images; ?><?php echo sprintf('<span class="help">%s</span>', $text_check_images_help); ?></td>
+                <td>
+                  <div id="image_checker">
+                    <input type="text" class="form-control" placeholder="<?php echo DIR_IMAGE ?>" value="<?php echo DIR_IMAGE ?>" id="image_checker_path">
+                    <button class="btn btn-primary" type="button" id="image_checker_trigger"><?php echo $button_text_check_images ?></button>
+                  </div>
+                </td>
+              </tr>
+              <tr class="s_img3">
+                <td><?php echo $entry_directory ?><?php echo sprintf('<span class="help">%s</span>', $entry_directory_help); ?></td>
                 <td><textarea rows="6" style="min-width:400px;" name="album_data[album_directory]" id="album_directory"><?php echo $album_data['album_directory'] ?></textarea>
                 </td>
               </tr>
               <!-- Type3 -->
               <tr class="s_img4">
-                <td><?php echo $entry_galery_images ?></td>
+                <td><?php echo $text_load_images; ?><?php echo sprintf('<span class="help">%s</span>', $text_load_images_help); ?></td>
                 <td>
+                  <div id="image_loader">
+                    <input type="text" class="form-control" placeholder="<?php echo DIR_IMAGE ?>" value="<?php echo DIR_IMAGE ?>" id="image_loader_path">
+                    <button class="btn btn-primary" type="button" id="image_loader_trigger"><?php echo $button_text_load_images ?></button>
+                  </div>
+                </td>
+              </tr>
+              <tr class="s_img4">
+                <td><?php echo $entry_galery_images ?></td>
+                <td id="sort_container">
                 <?php foreach ($album_data['gallery_images'] as $additional_image) { ?>
                   <div class="additional_image transition" id="image-row<?php echo $additional_image['id']; ?>">
-                    <span class="remove" title="<?php echo $button_text_remove_image; ?>" onClick="$('#image-row<?php echo $additional_image['id']; ?>').remove();"></span>
-                    <div class="left"><div><img src="<?php echo $additional_image['thumb']; ?>" alt="" id="thumb<?php echo $additional_image['id']; ?>" /><input type="hidden" name="album_data[gallery_images][<?php echo $additional_image['id']; ?>][image]" value="<?php echo $additional_image['image'] ?>" id="image<?php echo $additional_image['id']; ?>" /><input type="hidden" name="album_data[gallery_images][<?php echo $additional_image['id']; ?>][id]" value="<?php echo $additional_image['id'] ?>" /><br /><a onclick="imageUpload('image<?php echo $additional_image['id']; ?>', 'thumb<?php echo $additional_image['id']; ?>');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb<?php echo $additional_image['id']; ?>').attr('src', '<?php echo $no_image; ?>'); $('#image<?php echo $additional_image['id']; ?>').attr('value', '');"><?php echo $text_clear; ?></a>
+                    <span class="remove" title="<?php echo $button_text_remove; ?>" onClick="$('#image-row<?php echo $additional_image['id']; ?>').remove();"></span>
+                    <div class="left"><div><img src="<?php echo $additional_image['thumb']; ?>" alt="" id="thumb<?php echo $additional_image['id']; ?>" /><input type="hidden" name="album_data[gallery_images][<?php echo $additional_image['id']; ?>][image]" value="<?php echo $additional_image['image'] ?>" id="image<?php echo $additional_image['id']; ?>" /><input type="hidden" name="album_data[gallery_images][<?php echo $additional_image['id']; ?>][id]" value="<?php echo $additional_image['id'] ?>" /><br /><a onclick="imageUpload('image<?php echo $additional_image['id']; ?>', 'thumb<?php echo $additional_image['id']; ?>');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb<?php echo $additional_image['id']; ?>').attr('src', '<?php echo $no_image; ?>'); $('#image<?php echo $additional_image['id']; ?>').attr('value', '');"><?php echo $text_clear; ?></a><br />
                     <?php foreach ($languages as $key => $language): ?> 
                     <br> 
                     <input type="text" style="widht:100%;" placeholder="<?php echo $text_placeholder_description ?>" name="album_data[gallery_images][<?php echo $additional_image['id']; ?>][description][<?php echo $language['language_id'] ?>]" value="<?php echo (isset($additional_image['description'][$language['language_id']]) ? $additional_image['description'][$language['language_id']] : '') ?>"><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br>
@@ -217,7 +336,7 @@
                     </div></div>
                   </div>
                 <?php } ?>
-                  <div id="add_image_zone">
+                  <div id="add_image_zone" class="sortable-ignore-elements">
                     <div class="add_image_btn transition">
                       <a onclick="addImage();" title="<?php echo $button_text_add_image; ?>"><img src="view/image/bg_mgr_add_image.png"></a>
                     </div>
@@ -268,10 +387,13 @@
 <script>
 var image_row = <?php echo $image_row; ?> ;
 
-function addImage() {
+function addImage(image, thumb) {
+    var image = (image === undefined) ? '' : image;
+    var thumb = (thumb === undefined) ? '<?php echo $no_image; ?>' : thumb;
+
     html = '<div class="additional_image transition" id="image-row' + image_row + '">';
-    html += '<span class="remove" title="<?php echo $button_text_remove_image; ?>" onClick="$(\'#image-row' + image_row + '\').remove();"></span>';
-    html += '    <div class="left"><div><img src="<?php echo $no_image; ?>" alt="" id="thumb' + image_row + '" /><input type="hidden" name="album_data[gallery_images][' + image_row + '][image]" value="" id="image' + image_row + '" /><input type="hidden" name="album_data[gallery_images][' + image_row + '][id]" value="' + image_row + '" /><br /><a onclick="imageUpload(\'image' + image_row + '\', \'thumb' + image_row + '\');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$(\'#thumb' + image_row + '\').attr(\'src\', \'<?php echo $no_image; ?>\'); $(\'#image' + image_row + '\').attr(\'value\', \'\');"><?php echo $text_clear; ?></a>';
+    html += '<span class="remove" title="<?php echo $button_text_remove; ?>" onClick="$(\'#image-row' + image_row + '\').remove();"></span>';
+    html += '    <div class="left"><div><img src="' + thumb + '" alt="" id="thumb' + image_row + '" /><input type="hidden" name="album_data[gallery_images][' + image_row + '][image]" value="' + image + '" id="image' + image_row + '" /><input type="hidden" name="album_data[gallery_images][' + image_row + '][id]" value="' + image_row + '" /><br /><a onclick="imageUpload(\'image' + image_row + '\', \'thumb' + image_row + '\');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$(\'#thumb' + image_row + '\').attr(\'src\', \'<?php echo $no_image; ?>\'); $(\'#image' + image_row + '\').attr(\'value\', \'\');"><?php echo $text_clear; ?></a><br />';
     <?php foreach ($languages as $key => $language): ?> 
     html += '<br><input type="text" style="widht:100%;" placeholder="<?php echo $text_placeholder_description ?>" name="album_data[gallery_images]['+ image_row +'][description][<?php echo $language['language_id'] ?>]" value=""><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br>';
     <?php endforeach ?>
@@ -331,9 +453,60 @@ function initForm(){
     break;
   }
 }
-$(document).ready(function() {
-  setTimeout('$(".warning, .success").hide("fast")', 3000);
+function checker_func(){
+  $('div.message').remove();
 
+  $.ajax({
+    url: 'index.php?route=gallery/album/checkImages&token=<?php echo $token ?>',
+    type: 'POST',
+    dataType: 'json',
+    data: {path: $('#image_checker_path').val()},
+  })
+  
+  .success(function(data){
+    console.log(data);
+    if (data['success']) {
+      $('#image_checker').after('<div class="message"><span class="success">' + data['success'] + '<span class="remove" title="<?php echo $button_text_remove ?>" onclick="$(this).parents(\'.message\').remove();"></span></span></div>');
+    };
+    
+    if (data['warning']) {
+      $('#image_checker').after('<div class="message"><span class="warning">' + data['warning'] + '<span class="remove" title="<?php echo $button_text_remove ?>" onclick="$(this).parents(\'.message\').remove();"></span></span></div>');
+    }
+  });
+}
+function loader_func(){
+  $('div.message').remove();
+
+  $.ajax({
+    url: 'index.php?route=gallery/album/loadImages&token=<?php echo $token ?>',
+    type: 'POST',
+    dataType: 'json',
+    data: {path: $('#image_loader_path').val()},
+  })
+  
+  .success(function(data){
+    console.log(data);
+    if (data['success']) {
+      $('#image_loader').after('<div class="message"><span class="success">' + data['success'] + '<span class="remove" title="<?php echo $button_text_remove ?>" onclick="$(this).parents(\'.message\').remove();"></span></span></div>');
+      for (var i = data['files'].length - 1; i >= 0; i--) {
+        addImage(data['files'][i]['image'], data['files'][i]['thumb']);
+      };
+    };
+    
+    if (data['warning']) {
+      $('#image_loader').after('<div class="message"><span class="warning">' + data['warning'] + '<span class="remove" title="<?php echo $button_text_remove ?>" onclick="$(this).parents(\'.message\').remove();"></span></span></div>');
+    }
+  });
+}
+$(document).ready(function() {
+  Sortable.create(sort_container, {
+    filter: ".sortable-ignore-elements",
+    animation: 150,
+    handle : 'img'
+  });
+
+  setTimeout('$(".warning, .success").hide("fast")', 3000);
+  
   $('.require').on('change keyup paste', function(event) {
     var value = $(this).val();
     if (value == '') {
@@ -362,6 +535,29 @@ $(document).ready(function() {
       inputPlaceholder(el);
     };  
   });
+  //loader and checker 
+  $('#image_checker_trigger').on('click', function(){
+    checker_func();
+  });
+  $('#image_loader_trigger').on('click', function(){
+    loader_func();
+  });
+  $('#image_checker input[type=text]').keydown(function (e) {
+    console.log(e);
+    console.log(e.which);
+    if(e.which == 13) {
+      checker_func();
+    }
+  });
+  $('#image_loader input[type=text]').keydown(function (e) {
+    console.log(e);
+    console.log(e.which);
+    if(e.which == 13) {
+      loader_func();
+    }
+  });
+
+
 <?php foreach ($languages as $key => $language): ?>
   CKEDITOR.replace('album_description<?php echo $language['language_id'] ?>', {
     filebrowserBrowseUrl: 'index.php?route=common/filemanager&token=<?php echo $token; ?>',

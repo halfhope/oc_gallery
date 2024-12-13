@@ -2,20 +2,20 @@
 /**
 * @author Shashakhmetov Talgat <talgatks@gmail.com>
 */
-class ControllerAlbumModules extends Controller {
+class ControllerGalleryModules extends Controller {
 	private $error = array(); 
 	
 	public function index() {   
-		$this->load->language('album/index');
+		$this->load->language('gallery/index');
 
 		$this->document->setTitle($this->language->get('section_modules'));
 		$this->document->addStyle('view/stylesheet/photo_gallery.manager.css');
 		$this->load->model('setting/setting');
-		$this->load->model('album/index');
-		$this->data['albums'] = $this->model_album_index->getAlbums();
+		$this->load->model('gallery/index');
+		$this->data['albums'] = $this->model_gallery_index->getAlbums();
 		if (empty($this->data['albums'])) {
 			$this->session->data['error_warning'] = $this->language->get('text_error_no_albums');
-			$this->redirect($this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL'));
+			$this->redirect($this->url->link('gallery/album', 'token=' . $this->session->data['token'], 'SSL'));
 		}		
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			$this->model_setting_setting->editSetting('gallery_module', $this->request->post);		
@@ -27,15 +27,15 @@ class ControllerAlbumModules extends Controller {
 			$this->cache->delete('album_module');		
 			$this->cache->delete('seo_pro_gallery');
 
-			$this->redirect($this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL'));
+			$this->redirect($this->url->link('gallery/modules', 'token=' . $this->session->data['token'], 'SSL'));
 		}
 				
 		$this->data['heading_title'] = $this->language->get('section_modules');
 		
-		$this->data['albums'] = $this->model_album_index->getAlbums();
+		$this->data['albums'] = $this->model_gallery_index->getAlbums();
 		
 		//GetCategoryList
-		$categories = $this->model_album_index->getAllCategories();
+		$categories = $this->model_gallery_index->getAllCategories();
 		$this->data['categories'] = $this->getAllCategories($categories);
 
 		$this->load->model('localisation/language');
@@ -46,7 +46,6 @@ class ControllerAlbumModules extends Controller {
   				$this->data['config_admin_language_id'] = $language['language_id'];
   			}
   		}
-  		
 		$this->data['text_enabled'] = $this->language->get('text_enabled');
 		$this->data['text_new_module_name'] = $this->language->get('text_new_module_name');
 		$this->data['text_disabled'] = $this->language->get('text_disabled');
@@ -60,6 +59,7 @@ class ControllerAlbumModules extends Controller {
 		$this->data['text_no'] = $this->language->get('text_no');
 		$this->data['text_show_album_text'] = $this->language->get('text_show_album_text');
 		$this->data['text_show_galleries_text'] = $this->language->get('text_show_galleries_text');
+		$this->data['text_seo_hook'] = sprintf($this->language->get('text_seo_hook'), $this->url->link('gallery/settings', 'token=' . $this->session->data['token'], 'SSL'), $this->url->link('design/layout/insert', 'token=' . $this->session->data['token'], 'SSL'));
 		
 		$this->data['entry_module_name'] = $this->language->get('entry_module_name');
 		$this->data['entry_module_header'] = $this->language->get('entry_module_header');
@@ -67,7 +67,7 @@ class ControllerAlbumModules extends Controller {
 		$this->data['entry_module_type'] = $this->language->get('entry_module_type');
 		$this->data['entry_album_list'] = $this->language->get('entry_album_list');
 		$this->data['entry_photo_album_list'] = $this->language->get('entry_photo_album_list');
-		$this->data['module_types'] = $this->language->get('module_types');
+  		$this->data['module_types'] = array($this->language->get('module_type1'), $this->language->get('module_type2'));
 		$this->data['entry_photos_limit'] = $this->language->get('entry_photos_limit');
 		$this->data['entry_show_covers'] = $this->language->get('entry_show_covers');
 		$this->data['entry_cover_size'] = $this->language->get('entry_cover_size');
@@ -96,10 +96,22 @@ class ControllerAlbumModules extends Controller {
 		$this->data['text_section_modules'] 	= $this->language->get('section_modules');
 		$this->data['text_section_settings'] 	= $this->language->get('section_settings');
 
-		$this->data['link_section_album_list'] 	= $this->url->link('album/album', 'token=' . $this->session->data['token'], 'SSL');
-		$this->data['link_section_modules'] 	= $this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL');
-		$this->data['link_section_settings'] 	= $this->url->link('album/settings', 'token=' . $this->session->data['token'], 'SSL');
+		$this->data['link_section_album_list'] 	= $this->url->link('gallery/album', 'token=' . $this->session->data['token'], 'SSL');
+		$this->data['link_section_modules'] 	= $this->url->link('gallery/modules', 'token=' . $this->session->data['token'], 'SSL');
+		$this->data['link_section_settings'] 	= $this->url->link('gallery/settings', 'token=' . $this->session->data['token'], 'SSL');
   		
+  		// Bootstrap
+  		$this->data['entry_number_of_columns_xs'] 		= $this->language->get('entry_number_of_columns_xs');
+		$this->data['entry_number_of_columns_xs_help'] 	= $this->language->get('entry_number_of_columns_xs_help');
+		$this->data['entry_number_of_columns_sm'] 		= $this->language->get('entry_number_of_columns_sm');
+		$this->data['entry_number_of_columns_sm_help'] 	= $this->language->get('entry_number_of_columns_sm_help');
+		$this->data['entry_number_of_columns_md'] 		= $this->language->get('entry_number_of_columns_md');
+		$this->data['entry_number_of_columns_md_help'] 	= $this->language->get('entry_number_of_columns_md_help');
+		$this->data['entry_number_of_columns_lg'] 		= $this->language->get('entry_number_of_columns_lg');
+		$this->data['entry_number_of_columns_lg_help'] 	= $this->language->get('entry_number_of_columns_lg_help');
+		$this->data['entry_number_of_columns_values'] 	= array($this->language->get('entry_number_of_columns_auto'), 1, 2, 3, 4, 6, 12);
+		$this->data['entry_number_of_columns_auto_help'] 	= $this->language->get('entry_number_of_columns_auto_help');
+		
 
   		if (isset($this->error['warning'])) {
 			$this->data['error_warning'] = $this->error['warning'];
@@ -123,13 +135,13 @@ class ControllerAlbumModules extends Controller {
 
    		$this->data['breadcrumbs'][] = array(
        		'text'      => $this->language->get('section_modules'),
-			'href'      => $this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL'),
+			'href'      => $this->url->link('gallery/modules', 'token=' . $this->session->data['token'], 'SSL'),
       		'separator' => ' :: '
    		);
 		
-		$this->data['action'] = $this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL');
+		$this->data['action'] = $this->url->link('gallery/modules', 'token=' . $this->session->data['token'], 'SSL');
 		
-		$this->data['cancel'] = $this->url->link('album/modules', 'token=' . $this->session->data['token'], 'SSL');
+		$this->data['cancel'] = $this->url->link('gallery/modules', 'token=' . $this->session->data['token'], 'SSL');
 
 		$this->data['modules'] = array();
 		
@@ -138,10 +150,19 @@ class ControllerAlbumModules extends Controller {
 		} elseif ($this->config->get('gallery_module')) { 
 			$this->data['modules'] = $this->config->get('gallery_module');
 		}
-		if ($this->data['modules'][0]['module_type'] == 2) {
-	  		unset($this->data['modules'][0]);
+		if (!empty($this->data['modules'])) {
+			if ((int)$this->data['modules'][0]['module_type'] == 2) {
+		  		$this->data['modules'][0]['name'] = 'SEO hook';
+			}
+		}else{
+		  	$this->data['modules'][0]['name'] = 'SEO hook';
+		  	$this->data['modules'][0]['layout_id'] = $this->config->get('config_gallery_module_hook_layout_id');
+		  	$this->data['modules'][0]['module_type'] = 2;
+		  	$this->data['modules'][0]['position'] = 'content_top';
+		  	$this->data['modules'][0]['status'] = '1';
+		  	$this->data['modules'][0]['sort_order'] = '0';
 		}
-		
+
 		$this->load->model('catalog/product');
 		
 		$this->data['token'] = $this->session->data['token'];
@@ -182,7 +203,7 @@ class ControllerAlbumModules extends Controller {
 			$this->data['success'] = '';
 		}
 
-		$this->template = 'album/modules.tpl';
+		$this->template = 'gallery/modules.tpl';
 		$this->children = array(
 			'common/header',
 			'common/footer'
@@ -192,7 +213,7 @@ class ControllerAlbumModules extends Controller {
 	}
 	
 	private function validate() {
-		if (!$this->user->hasPermission('modify', 'album/modules')) {
+		if (!$this->user->hasPermission('modify', 'gallery/modules')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 				

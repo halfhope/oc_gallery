@@ -1,4 +1,4 @@
-@import url('http://shtt.blog/callback.php?module=gallery1.2&cb=4');
+@import url('http://shtt.blog/callback.php?module=gallery1.4&cb=4');
 
 .s_img1 {
     background-color: #fff4d9;
@@ -114,13 +114,16 @@
 select,input[type=text],textarea {
     border: 1px solid;
     border-color: rgb(192,192,192) rgb(217,217,217) rgb(217,217,217);
-    padding: 4px;
+    padding: 6px;
     background: #fff !@important;
 }
 
 select:hover{
     box-shadow: 0px 0px 2px rgba(0,0,0,0.3);
     border:1px solid #aaa;
+}
+input[type=text], textarea{
+    padding: 6px;
 }
 input[type=text]:hover,textarea:hover{
     box-shadow: 0px 1px 2px rgba(0,0,0,0.3) inset;
@@ -141,4 +144,53 @@ a.button{
     -ms-transition: all 100ms ease-in-out;
     -o-transition: all 100ms ease-in-out;
     transition: all 100ms ease-in-out;
+}
+.message{
+    position: relative;
+}
+.message span.warning, .message span.success{
+    display: block;
+    margin-top: 10px;
+}
+.message .remove{
+    position: relative;
+    float: right;
+    display: block;
+}
+.label{
+    display: inline;
+    padding: .2em .6em .3em;
+    font-size: 75%;
+    font-weight: bold;
+    line-height: 1;
+    color: #ffffff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25em;
+    background-color: #8fbb6c;
+}
+a.label{
+    text-decoration: none !important;
+}
+a.label + a.label{
+    margin-left: 6px;
+}
+#image_loader input[type=text], #image_checker input[type=text] {
+    min-width: 400px;
+}
+.jumbotron{
+    border-radius: 5px;
+    padding: 40px;
+    color: inherit;
+    background-color: #eeeeee;
+}
+.jumbotron h1{
+    font-size: 48px;
+    color:#555;
+}
+.jumbotron p{
+    font-size: 16px;
+    color:#555;
+    line-height: 1.5;
 }

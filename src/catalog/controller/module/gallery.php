@@ -5,6 +5,14 @@
 class ControllerModuleGallery extends Controller {
 	private $cacher = array();
 	private $current_language_id;
+	private $current_store_id;
+
+    public function __construct($registry){
+        parent::__construct($registry);
+        $this->current_language_id = $this->config->get('config_language_id');
+        $this->current_store_id = $this->config->get('config_store_id');
+    }
+
 	/*
 	* Faster check category_id and product_id
 	*/
@@ -59,14 +67,21 @@ class ControllerModuleGallery extends Controller {
 		$this->load->model('tool/image');
 		$this->load->model('catalog/gallery');
 		$this->document->addStyle('catalog/view/theme/default/stylesheet/photo_gallery.manager.css');
+		
+		$config_gallery_include_bootstrap = $this->config->get('config_gallery_include_bootstrap');
+        if ($config_gallery_include_bootstrap) {
+            $this->document->addStyle('catalog/view/theme/default/stylesheet/photo_gallery.bootstrap.grid.css');
+            
+        }
+        
  		$this->current_language_id = $this->config->get('config_language_id');
-		$module_cache_name = md5($setting['layout_id'].$setting['position'].$setting['name'].$this->current_language_id);
+		$module_cache_name = md5($setting['layout_id'].$setting['position'].$setting['name'].$this->current_language_id.$this->current_store_id);
 
 		if (!$this->checkModuleLayout($setting)) {
 			return;
 		}
 
-		$this->cacher = $this->cache->get('album_module.'.$module_cache_name);
+		$this->cacher = $this->cache->get('gallery_module.'.$module_cache_name);
 		if (empty($this->cacher) || (!$this->config->get('config_gallery_modules_cache_enabled'))) {
 			$this->cacher['galleries_link'] = $this->url->link('gallery/gallery');
 			switch ($setting['module_type']) {
@@ -75,6 +90,16 @@ class ControllerModuleGallery extends Controller {
 					if ($this->cacher['show_header']) {
 						$this->cacher['heading_title'] = $setting['header'][$this->current_language_id];
 					}
+					
+					// Bootstrap
+                    $bootstrap_columns = array(1=>6, 2=>5, 3=>4, 4=>3, 5=>2, 6=>1);
+                    $this->cacher['bootstrap_grid'] = implode(' ', array(    
+                        ((int)$setting['number_of_columns_xs'] !== 0) ? 'col-xs-'.$bootstrap_columns[$setting['number_of_columns_xs']] : '',
+                        ((int)$setting['number_of_columns_sm'] !== 0) ? 'col-sm-'.$bootstrap_columns[$setting['number_of_columns_sm']] : '',
+                        ((int)$setting['number_of_columns_md'] !== 0) ? 'col-md-'.$bootstrap_columns[$setting['number_of_columns_md']] : '',
+                        ((int)$setting['number_of_columns_lg'] !== 0) ? 'col-lg-'.$bootstrap_columns[$setting['number_of_columns_lg']] : ''
+                    ));
+
 					if (!empty($setting['album_list'])) {
 						$albums = array();
 						foreach ($setting['album_list'] as $key => $album_id) {
@@ -83,15 +108,16 @@ class ControllerModuleGallery extends Controller {
 								$albums[$key] = $pre_album;
 								//Add data
 								if ($setting['show_counter']) {
-									$cached = $this->cache->get('album_photos.'.md5($album_id.'0'));
-									if (!empty($cached)) {
-										$albums[$key]['images'] = $cached;	
-									}else{
-										$cached_data = $this->getAlbumImages($album_id, 0);
-										$this->cache->set('album_photos.'.md5($album_id.'0'), $cached_data);
-										$albums[$key]['images'] = $cached_data;
-									}
-								}
+                                    $cached_images_name = "gallery_photos.$album_id.1.0.$this->current_store_id.$this->current_language_id";
+                                    $cached = $this->cache->get($cached_images_name);
+                                    if (!empty($cached)) {
+                                        $albums[$key]['images'] = $cached;    
+                                    }else{
+										$cached_data = $this->model_catalog_gallery->getAlbumImages($album_id);
+                                        $this->cache->set($cached_images_name, $cached_data);
+                                        $albums[$key]['images'] = $cached_data;
+                                    }
+                                }
 								//counter
 								$album_name_postfix = ($setting['show_counter'] ? ' ('.count($albums[$key]['images']).')' : '');
 
@@ -107,7 +133,7 @@ class ControllerModuleGallery extends Controller {
 								$this->cacher['cover_image_height'] = $setting['cover_image_height'];
 								
 								$this->cacher['show_album_galleries_link'] = $setting['show_album_galleries_link'];
-								$this->cacher['album_galleries_link_text'] = $setting['album_galleries_link_text'];
+								$this->cacher['album_galleries_link_text'] = $setting['album_galleries_link_text'][$this->current_language_id];
 							}
 						}
 						$this->cacher['albums'] = $albums;
@@ -126,67 +152,90 @@ class ControllerModuleGallery extends Controller {
 					if ($this->cacher['show_header']) {
 						$this->cacher['heading_title'] = $setting['header'][$this->current_language_id];
 					}
+					
+					// Bootstrap
+                    $bootstrap_columns = array(1=>6, 2=>5, 3=>4, 4=>3, 5=>2, 6=>1);
+                    $this->cacher['bootstrap_grid'] = implode(' ', array(    
+                        ((int)$setting['number_of_columns_xs'] !== 0) ? 'col-xs-'.$bootstrap_columns[$setting['number_of_columns_xs']] : '',
+                        ((int)$setting['number_of_columns_sm'] !== 0) ? 'col-sm-'.$bootstrap_columns[$setting['number_of_columns_sm']] : '',
+                        ((int)$setting['number_of_columns_md'] !== 0) ? 'col-md-'.$bootstrap_columns[$setting['number_of_columns_md']] : '',
+                        ((int)$setting['number_of_columns_lg'] !== 0) ? 'col-lg-'.$bootstrap_columns[$setting['number_of_columns_lg']] : ''
+                    ));
+
 					if (!empty($setting['photo_album_list'])) {
 						foreach ($setting['photo_album_list'] as $key => $album_id) {
 							$albums[$key] = $this->model_catalog_gallery->getAlbum($album_id);
-							//Add data
-							if (!empty($albums[$key]['album_data']['album_description']) && $setting['show_album_description']) {
-								$albums[$key]['album_description'] = html_entity_decode($albums[$key]['album_data']['album_description'][$this->current_language_id], ENT_QUOTES, 'UTF-8');
-							}
-
-							$albums[$key]['album_name'] = $albums[$key]['album_data']['album_name'][$this->current_language_id];
-							$albums[$key]['album_link'] = $this->url->link('gallery/photos', 'album_id='.$albums[$key]['album_id']);
-							
-							$cached = $this->cache->get('album_photos.'.md5($album_id.$setting['photos_limit']));
-							if (!empty($cached)) {
-								$albums[$key]['images'] = $cached;	
-							}else{
-								$cached = $this->getAlbumImages($album_id, $setting['photos_limit']);
-								$this->cache->set('album_photos.'.md5($album_id.$setting['photos_limit']), $cached);
-								$albums[$key]['images'] = $cached;
-							}
-							
-							$this->cacher['show_album_link'] = $setting['show_album_link'];
-							$this->cacher['album_link_text'] = $setting['album_link_text'];
-							
-							$this->cacher['gallery_thumb_image_width'] = $setting['gallery_thumb_image_width'];
-							$this->cacher['gallery_thumb_image_height'] = $setting['gallery_thumb_image_height'];
-							switch ($albums[$key]['album_data']['js_lib_type']) {
-								case 0: // ColorBox 
-									if ($this->config->get('config_gallery_include_colorbox')) {
-										$this->cacher['scripts'][] = 'catalog/view/javascript/jquery/colorbox/jquery.colorbox-min.js';
-										$this->cacher['styles'][] = 'catalog/view/javascript/jquery/colorbox/colorbox.css';
-									}
-									$albums[$key]['js_lib_type_text'] = 'colorbox';
-								break;
-								case 1: // LightBox 
-									if ($this->config->get('config_gallery_include_lightbox')) {
-										$this->cacher['scripts'][] = 'catalog/view/javascript/jquery/lightbox/lightbox.min.js';
-										$this->cacher['styles'][] = 'catalog/view/javascript/jquery/lightbox/lightbox.css';
-									}
-									$albums[$key]['js_lib_type_text'] = 'lightbox';
-								break;
-								case 2: // FancyBox 
-									if ($this->config->get('config_gallery_include_fancybox')) {
-										$this->cacher['scripts'][] = 'catalog/view/javascript/jquery/fancybox/jquery.fancybox.pack.js';
-										$this->cacher['styles'][] = 'catalog/view/javascript/jquery/fancybox/jquery.fancybox.css';
-									}
-									$albums[$key]['js_lib_type_text'] = 'fancybox';
-								break;
-							}
-
-							
-							foreach ($albums[$key]['images'] as $img_key => $image) {
-								if (empty($image['image'])) {
-									$image['thumb'] = $this->model_tool_image->resize('no_image.jpg', $setting['gallery_thumb_image_width'] , $setting['gallery_thumb_image_height']);
-									$image['popup'] = $this->model_tool_image->resize('no_image.jpg', $setting['gallery_popup_image_width'] , $setting['gallery_popup_image_height']);
-								}else{
-									$image['thumb'] = $this->model_tool_image->resize($image['image'], $setting['gallery_thumb_image_width'] , $setting['gallery_thumb_image_height']);
-									$image['popup'] = $this->model_tool_image->resize($image['image'], $setting['gallery_popup_image_width'] , $setting['gallery_popup_image_height']);										
+							if (!empty($albums[$key])) {
+								//Add data
+								if (!empty($albums[$key]['album_data']['album_description']) && $setting['show_album_description']) {
+									$albums[$key]['album_description'] = html_entity_decode($albums[$key]['album_data']['album_description'][$this->current_language_id], ENT_QUOTES, 'UTF-8');
 								}
-								$albums[$key]['images'][$img_key] = $image;
+
+								$albums[$key]['album_name'] = $albums[$key]['album_data']['album_name'][$this->current_language_id];
+								$albums[$key]['album_link'] = $this->url->link('gallery/photos', 'album_id='.$albums[$key]['album_id']);
+								$cached_images_name = "gallery_photos.$album_id.1.".$setting['photos_limit'].".$this->current_store_id.$this->current_language_id";
+	                            $cached = $this->cache->get($cached_images_name);
+	                            if (!empty($cached)) {
+	                                $albums[$key]['images'] = $cached;    
+	                            }else{
+	                                $cached = $this->model_catalog_gallery->getAlbumImages($album_id, 1, $setting['photos_limit']);
+	                                $this->cache->set($cached_images_name, $cached);
+	                                $albums[$key]['images'] = $cached;
+	                            }
+								
+								$this->cacher['show_album_link'] = $setting['show_album_link'];
+								$this->cacher['album_link_text'] = $setting['album_link_text'][$this->current_language_id];
+								
+								$this->cacher['gallery_thumb_image_width'] = $setting['gallery_thumb_image_width'];
+								$this->cacher['gallery_thumb_image_height'] = $setting['gallery_thumb_image_height'];
+
+								switch ($albums[$key]['album_data']['js_lib_type']) {
+									case 0: // ColorBox 
+										if ($this->config->get('config_gallery_include_colorbox')) {
+											$this->cacher['scripts'][] = 'catalog/view/javascript/jquery/colorbox/jquery.colorbox-min.js';
+											$this->cacher['styles'][] = 'catalog/view/javascript/jquery/colorbox/colorbox.css';
+										}
+										$albums[$key]['js_lib_type_text'] = 'colorbox';
+									break;
+									case 1: // LightBox 
+										if ($this->config->get('config_gallery_include_lightbox')) {
+											$this->cacher['scripts'][] = 'catalog/view/javascript/jquery/lightbox/lightbox.min.js';
+											$this->cacher['styles'][] = 'catalog/view/javascript/jquery/lightbox/lightbox.css';
+										}
+										$albums[$key]['js_lib_type_text'] = 'lightbox';
+									break;
+									case 2: // FancyBox 
+										if ($this->config->get('config_gallery_include_fancybox')) {
+											$this->cacher['scripts'][] = 'catalog/view/javascript/jquery/fancybox/jquery.fancybox.pack.js';
+											$this->cacher['styles'][] = 'catalog/view/javascript/jquery/fancybox/jquery.fancybox.css';
+										}
+										$albums[$key]['js_lib_type_text'] = 'fancybox';
+									break;
+									case 3: // Magnific PopUp
+	                                    if ($this->config->get('config_gallery_include_magnific_popup')) { 
+	                                        $this->cacher['scripts'][] = 'catalog/view/javascript/jquery/magnific/jquery.magnific-popup.min.js';
+	                                        $this->cacher['styles'][] ='catalog/view/javascript/jquery/magnific/magnific-popup.css';
+	                                    }
+	                                    $album[$key]['js_lib_type_text'] = 'magnific_popup';
+	                                break;
+								}
+								
+								foreach ($albums[$key]['images'] as $img_key => $image) {
+									if (empty($image['image'])) {
+										$image['thumb'] = $this->model_tool_image->resize('no_image.jpg', $setting['gallery_thumb_image_width'] , $setting['gallery_thumb_image_height']);
+										$image['popup'] = $this->model_tool_image->resize('no_image.jpg', $setting['gallery_popup_image_width'] , $setting['gallery_popup_image_height']);
+									}else{
+										$image['thumb'] = $this->model_tool_image->resize($image['image'], $setting['gallery_thumb_image_width'] , $setting['gallery_thumb_image_height']);
+										$image['popup'] = $this->model_tool_image->resize($image['image'], $setting['gallery_popup_image_width'] , $setting['gallery_popup_image_height']);										
+									}
+									$albums[$key]['images'][$img_key] = $image;
+								}
+								$this->cacher['albums'] = $albums;
 							}
-							$this->cacher['albums'] = $albums;
+						}
+
+						if (!isset($this->cacher['albums']) || empty($this->cacher['albums'])) {
+							return;
 						}
 						
 						if (count($this->cacher['albums']) > 1 ) {
@@ -200,7 +249,7 @@ class ControllerModuleGallery extends Controller {
 					}
 				break;
 			}
-			$this->cache->set('album_module.'.$module_cache_name, $this->cacher);
+			$this->cache->set('gallery_module.'.$module_cache_name, $this->cacher);
 		}
 
 		if (!empty($this->cacher['albums']) && $this->config->get('config_gallery_include_jstabs') && count($this->cacher['albums']) >= 2) {
@@ -235,97 +284,10 @@ class ControllerModuleGallery extends Controller {
 			$this->template = 'default/template/module/'.$template.'.tpl';
 		}
 	}
-	private function getAlbumImages($album_id, $limit = 0){
-		$this->load->model('catalog/product');
-		$this->load->model('tool/image');
-		$this->load->model('catalog/gallery');
-		
-		$this->load->model('localisation/language');
-		$this->data['languages'] = $this->model_localisation_language->getLanguages();
-
-		$album = $this->model_catalog_gallery->getAlbum($album_id);
-
-		$album_photos = array();
-		switch ($album['album_type']) {
-			case 0: //Category
-				foreach ($album['album_data']['album_categories'] as $category_id) {
-					$products = $this->model_catalog_category->getCategories($category_id);
-					$data = array(
-						'filter_category_id' => $category_id
-					);
-					
-					$products = $this->model_catalog_product->getProducts($data);
-					
-					foreach ($products as $product){
-						if ($product['image']) {
-							$key = md5($product['image']);
-							$album_photos[$key]['image'] = $product['image'];
-							$album_photos[$key]['title'] = $product['name'];
-						}
-						if ($album['album_data']['include_additional_images']) {
-							$images = $this->model_catalog_product->getProductImages($product['product_id']);
-							if (!empty($images)) {
-								foreach ($images as $image) {
-									$key = md5($image['image']);
-									$album_photos[$key]['image'] = $image['image'];
-									$album_photos[$key]['title'] = $product['name'];
-								}
-							}
-						}
-					}
-				}
-				break;
-			case 1: //Directory
-				foreach (explode(PHP_EOL, $album['album_data']['album_directory']) as $directory) {
-					if (!empty($directory)) {
-						
-					$data = glob($directory);
-					$data = array_filter($data, 'is_file');
-						if (!empty($data)) {
-							foreach ($data as $value) {
-								$key = md5($value);
-								if ($value{0} == 'i') {
-									$value = str_replace('image/', '', $value);
-								}
-								$album_photos[$key]['image'] = $value;
-								$album_photos[$key]['title'] = '';
-							}
-						}
-					}
-				}
-				break;
-			case 2: //Custom images
-				if (!empty($album['album_data']['gallery_images'])) {
-					foreach ($album['album_data']['gallery_images'] as $gallery_image) {
-						$key = md5($gallery_image['image']);
-						$album_photos[$key]['image'] = $gallery_image['image'];
-						$album_photos[$key]['title'] = $gallery_image['description'][$this->current_language_id];
-					}
-				}
-			break;
-		}
-		//Limit photos
-		$result = array();
-		if ($limit == 0) {
-			$result = $album_photos;
-		}else{
-			reset($album_photos);
-			for ($counter =0; $counter  < $limit; $counter ++) { 
-				$elem = current($album_photos);
-				if (!empty($elem)) {
-					$result[] = $elem;
-					next($album_photos);
-				}else{
-					break;
-				}
-			}
-		}
-		return $result;
-	}
 	private function getProductId(){
 		$product_id = 0;
 
-		if ($this->request->get['route'] == 'catalog/product') {
+		if ($this->request->get['route'] == 'product/product') {
 			$product_id = $this->request->get['product_id'];
 		}
 
@@ -334,7 +296,7 @@ class ControllerModuleGallery extends Controller {
 	private function getCategoryId(){
 		$category_id = 0;
 
-		if ($this->request->get['route'] == 'catalog/category') {
+		if ($this->request->get['route'] == 'product/category') {
 			$path = explode('_', (string)$this->request->get['path']);
 			$category_id = end($path);
 		}

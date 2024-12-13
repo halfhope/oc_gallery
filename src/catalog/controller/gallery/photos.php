@@ -5,19 +5,27 @@
 class ControllerGalleryPhotos extends controller{
     private $cacher = array();
     private $current_language_id;
+    private $current_store_id;
 
+    public function __construct($registry)
+    {
+        parent::__construct($registry);
+        $this->current_language_id = $this->config->get('config_language_id');
+        $this->current_store_id = $this->config->get('config_store_id');
+    }
+    
     public function index(){
-        $this->getChild('common/seo_gallery');
+        $this->getchild('common/seo_gallery');
 
         if (isset($this->request->get['album_id'])) {
             $album_id = (int)$this->request->get['album_id'];
             if (!empty($album_id)) {
                 $this->section_photos($album_id);
             }else{
-                $this->redirect($this->url->link('gallery/gallery'));
+                $this->response->redirect($this->url->link('gallery/gallery'));
             }
         }else{
-            $this->redirect($this->url->link('gallery/gallery'));
+            $this->response->redirect($this->url->link('gallery/gallery'));
         }
     }
     private function section_photos($album_id){
@@ -26,17 +34,15 @@ class ControllerGalleryPhotos extends controller{
         $this->load->model('catalog/product');
         $this->load->model('tool/image');
         $this->load->model('catalog/gallery');
-        $this->load->language('product/gallery');
+        $this->load->language('gallery/gallery');
         $this->data['text_gallery_list']    = $this->language->get('text_gallery_list');
         $this->data['text_limit']           = $this->language->get('text_limit');
-
-        $this->current_language_id = $this->config->get('config_language_id');
         
         $pre_album = $this->model_catalog_gallery->getAlbum($album_id);
         if (empty($pre_album)) {
-            $this->redirect($this->url->link('gallery/gallery'));
+            $this->response->redirect($this->url->link('gallery/gallery'));
         }
-        $total_cached_images_name = 'album_photos.total.'.md5($album_id.'10'.$this->current_language_id);
+        $total_cached_images_name = 'gallery_gallery.total.'.md5($album_id.'10'.$this->current_language_id);
 
         if ($this->config->get('config_gallery_modules_cache_enabled')) {
             $total_cached = $this->cache->get($total_cached_images_name);
@@ -60,7 +66,7 @@ class ControllerGalleryPhotos extends controller{
         if (isset($this->request->get['limit'])) {
             $limit = intval($this->request->get['limit']);
             if (($limit < 0) || ($limit >= $pre_album['total_images'])) {
-                $this->redirect($this->url->link('gallery/photos', 'album_id=' . $album_id. '&limit=0'));
+                $this->response->redirect($this->url->link('gallery/photos', 'album_id=' . $album_id. '&limit=0'));
             }else{
                 $url = '&limit='.(int)$limit;
             }
@@ -71,7 +77,7 @@ class ControllerGalleryPhotos extends controller{
         }        
         $this->data['limit'] = $limit;
         
-        $cached_page_name = 'album_gallery.'.md5($album_id.$page.$limit.$this->current_language_id);
+        $cached_page_name = "gallery_gallery.$album_id.$page.$limit.$this->current_store_id.$this->current_language_id";
         
         $this->cacher = $this->cache->get($cached_page_name);
         if (!empty($this->cacher) && $this->config->get('config_gallery_modules_cache_enabled')) {
@@ -83,7 +89,7 @@ class ControllerGalleryPhotos extends controller{
 
             $album = $pre_album;
             if (empty($album)) {
-                $this->redirect($this->url->link('gallery/gallery'));
+                $this->response->redirect($this->url->link('gallery/gallery'));
             }
 
             $this->cacher['limits'] = array();
@@ -128,7 +134,7 @@ class ControllerGalleryPhotos extends controller{
             
             $album['album_link'] = $this->url->link('gallery/gallery', 'album_id='.$album['album_id']);
             
-            $cached_images_name = 'album_photos.'.md5($album_id.$page.$limit.$this->current_language_id);
+            $cached_images_name = "gallery_photos.$album_id.$page.$limit.$this->current_store_id.$this->current_language_id";
             
             if ($this->config->get('config_gallery_modules_cache_enabled')) {   
                 $cached = $this->cache->get($cached_images_name);
@@ -154,7 +160,6 @@ class ControllerGalleryPhotos extends controller{
                 $pagination->text = $this->language->get('text_pagination');
                 $pagination->url = $this->url->link('gallery/photos', 'album_id=' . $this->request->get['album_id']. '&page={page}'. $url);
                 $this->cacher['pagination'] = $pagination->render();
-                // var_dump($pagination);
             }
        
 
@@ -169,15 +174,25 @@ class ControllerGalleryPhotos extends controller{
                 $album['images'][$img_key] = $image;
             }
             
+            //bootstrap columns
+            $bootstrap_columns = array(1=>12, 2=>6, 3=>4, 4=>3, 5=>2, 6=>1);
+            $album['bootstrap_grid'] = implode(' ', array(
+                ((int)$album['album_data']['number_of_columns_xs'] !== 0) ? 'col-xs-'.$bootstrap_columns[$album['album_data']['number_of_columns_xs']] : '',
+                ((int)$album['album_data']['number_of_columns_sm'] !== 0) ? 'col-sm-'.$bootstrap_columns[$album['album_data']['number_of_columns_sm']] : '',
+                ((int)$album['album_data']['number_of_columns_md'] !== 0) ? 'col-md-'.$bootstrap_columns[$album['album_data']['number_of_columns_md']] : '',
+                ((int)$album['album_data']['number_of_columns_lg'] !== 0) ? 'col-lg-'.$bootstrap_columns[$album['album_data']['number_of_columns_lg']] : ''
+            ));
+            
             //Metadata
             $album['album_title'] = (!empty($album['album_data']['album_title'][$this->current_language_id]) ? $album['album_data']['album_title'][$this->current_language_id] : $album['album_name']);
+            
             $album['album_h1_title'] = (!empty($album['album_data']['album_h1_title'][$this->current_language_id]) ? $album['album_data']['album_h1_title'][$this->current_language_id] : $album['album_name']);
             $album['album_keywords'] = (!empty($album['album_data']['album_keywords'][$this->current_language_id]) ? $album['album_data']['album_keywords'][$this->current_language_id] : $album['album_name']);
             $album['album_meta_description'] = (!empty($album['album_data']['album_meta_description'][$this->current_language_id]) ? $album['album_data']['album_meta_description'][$this->current_language_id] : $album['album_name']);
             if (!empty($album['album_data']['album_description']) && $album['album_data']['show_album_description']) {
                 $album['album_description'] = html_entity_decode($album['album_data']['album_description'][$this->current_language_id], ENT_QUOTES, 'UTF-8');
             }
-            
+
             switch ($album['album_data']['js_lib_type']) {
                 case 0: // ColorBox 
                     if ($this->config->get('config_gallery_include_colorbox')) {
@@ -199,6 +214,13 @@ class ControllerGalleryPhotos extends controller{
                         $album['styles'][] ='catalog/view/javascript/jquery/fancybox/jquery.fancybox.css';
                     }
                     $album['js_lib_type_text'] = 'fancybox';
+                break;
+                case 3: // Magnific PopUp
+                    if ($this->config->get('config_gallery_include_magnific_popup')) { 
+                        $album['scripts'][] = 'catalog/view/javascript/jquery/magnific/jquery.magnific-popup.min.js';
+                        $album['styles'][] ='catalog/view/javascript/jquery/magnific/magnific-popup.css';
+                    }
+                    $album['js_lib_type_text'] = 'magnific_popup';
                 break;
             }
             
@@ -242,21 +264,37 @@ class ControllerGalleryPhotos extends controller{
         $this->document->setTitle($album['album_title']);
         $this->document->addStyle('catalog/view/theme/default/stylesheet/photo_gallery.manager.css');
         
-        $this->data['heading_title'] = $album['album_h1_title'];
-        $galleres_title = $this->config->get('config_galleries_title');
-        if (empty($galleres_title[$this->current_language_id])) {
-            $galleres_title[$this->current_language_id] = $this->language->get('text_gallery_list');
+        $config_gallery_include_bootstrap = $this->config->get('config_gallery_include_bootstrap');
+        if ($config_gallery_include_bootstrap) {
+            $this->document->addStyle('catalog/view/theme/default/stylesheet/photo_gallery.bootstrap.grid.css');
+            
         }
+        
+        $this->data['heading_title'] = $album['album_h1_title'];
 
+        $bread = $this->config->get('config_gallery_galleries_breadcrumb');
+        if (!empty($bread[$this->current_store_id][$this->current_language_id])) {
+            $bread = $bread[$this->current_store_id][$this->current_language_id];
+        }else{
+            $titl = $this->config->get('config_gallery_galleries_title');
+            if (!empty($titl[$this->current_store_id][$this->current_language_id])) {
+                $titl = $titl[$this->current_store_id][$this->current_language_id];
+            }else{
+               $titl = $this->language->get('text_gallery_list');
+            }
+            $bread = $titl;
+        }
+        
+            
         #Добавляем хлебные крошки (обязательно)
         $this->data['breadcrumbs'] = array();
         $this->data['breadcrumbs'][] = array(
             'text'      => $this->language->get('text_home'),
-            'href'      => $this->url->link('common/home'),         
-            'separator' => false
+            'href'      => $this->url->link('common/home'),
+            'separator' => false        
         ); 
         $this->data['breadcrumbs'][] = array(
-            'text'      => $galleres_title[$this->current_language_id],
+            'text'      => $bread,
             'href'      => $this->url->link('gallery/gallery', '', 'SSL'),          
             'separator' => $this->language->get('text_separator')
         );
@@ -273,18 +311,15 @@ class ControllerGalleryPhotos extends controller{
             $this->response->addHeader('Last-Modified: '.date('r'));
         }
 
-        # стандартный код загрузки файла шаблона (обязательно)
-
-        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/gallery/photos.tpl')) {
-            $this->template = $this->config->get('config_template') . '/template/gallery/photos.tpl';
-        } else {
-            $this->template = 'default/template/gallery/photos.tpl';
-        }
  
         # (Не обязательно) Если хотите использовать модули в левой или правой колонке, то:
         $this->document->setDescription((!empty($album['album_data']['album_meta_description'][$this->current_language_id]) ? $album['album_data']['album_meta_description'][$this->current_language_id] : $album['album_name']));
         $this->document->setKeywords((!empty($album['album_data']['album_meta_keywords'][$this->current_language_id]) ? $album['album_data']['album_meta_keywords'][$this->current_language_id] : $album['album_name']));
         
+        $this->data['microtime'] = microtime(true) - $this->data['microtime'];
+        $this->data['no_conflict'] = substr(md5(rand(0, 99)), 20);
+
+        # (Не обязательно) Если хотите использовать модули в левой или правой колонке, то:
         $this->children = array(
             'common/column_left',
             'common/column_right',
@@ -294,8 +329,13 @@ class ControllerGalleryPhotos extends controller{
             'common/header'
         );
 
-        $this->data['microtime'] = microtime(true) - $this->data['microtime'];
-        $this->data['no_conflict'] = substr(md5(rand(0, 99)), 20);
+        # стандартный код загрузки файла шаблона (обязательно)
+        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/gallery/photos.tpl')) {
+            $this->template = $this->config->get('config_template') . '/template/gallery/photos.tpl';
+        } else {
+            $this->template = 'default/template/gallery/photos.tpl';
+        }
+        
         #рендеринг шаблона (Обязательно)
         $this->response->setOutput($this->render());
         // ***************************************************************************************************** 

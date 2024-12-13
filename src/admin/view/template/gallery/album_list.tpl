@@ -36,9 +36,12 @@
                 </td>
                 <td class="left"><?php echo $column_name ?></td>
                 <td class="left"><?php echo $column_album_type ?></td>
-                <td class="right" width="100"><?php echo $column_enabled ?></td>
-                <td class="right" width="140"><?php echo $column_sort_order ?></td>
-                <td class="right" width="80"><?php echo $column_action ?></td>
+                <?php //if (count($stores) >= 2): ?>
+                <td class="left"><?php echo $column_store ?></td>
+                <?php //endif ?>
+                <td class="right" width="60"><?php echo $column_enabled ?></td>
+                <td class="right" width="120"><?php echo $column_sort_order ?></td>
+                <td class="right" width="100"><?php echo $column_action ?></td>
               </tr>
             </thead>
             <tbody>
@@ -49,6 +52,13 @@
                 </td>
                 <td class="left" onClick="window.location.href='<?php echo $album['edit_link'] ?>';"><?php echo $album['album_data']['album_name'][$config_admin_language_id] ?></td>
                 <td class="left" onClick="window.location.href='<?php echo $album['edit_link'] ?>';"><?php echo $album_types[$album['album_type']] ?></td>
+                <?php //if (count($stores) >= 2): ?>
+                  <td class="text-right">
+                    <?php foreach ($album['album_data']['stores'] as $key => $a_store): ?>  
+                      <a href="<?php echo $album['view_link'][(int)$a_store] ?>" class="label" title="<?php echo $button_text_view ?>" target="_blank"><?php echo $stores[$a_store]['name'] ?></a>
+                    <?php endforeach ?>
+                  </td>
+                <?php //endif ?>
                 <td class="right"><?php echo $arr_enabled[$album['enabled']]; ?></td>
                 <td class="right"><?php echo $album['sort_order'] ?></td>
                 <td class="right">

@@ -1,38 +1,35 @@
 .transition{
-    -webkit-transition: all 100ms ease-in-out;
-    -moz-transition: all 100ms ease-in-out;
-    -ms-transition: all 100ms ease-in-out;
-    -o-transition: all 100ms ease-in-out;
-    transition: all 100ms ease-in-out;
+    -webkit-transition: all .2s ease-in-out;
+    -moz-transition: all .2s ease-in-out;
+    -ms-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
 }
+/* Galleries list section */
 
-.box-gallery, .gallery{
-    text-align: center;
-}
-.gallery-product{
-    text-align: left !important;
-}
-.box-gallery .gallery_cover, .gallery .gallery_photo{
-    text-decoration: none;
-    background: #fff;
+.galleries .gallery_cover {
     display: inline-block;
-    border: 1px solid #ddd;
-    padding: 5px;
-    border-radius:4px;
-    margin:3px;
 }
-.box-gallery .gallery_cover:hover, .gallery .gallery_photo:hover{
-    border: 1px solid #afafaf;
-    box-shadow: 0 0 3px 0px rgba(0, 0, 0, 0.2),inset 0 1px 1px #fff;    
-}
-.box-gallery .gallery_cover img, .box-gallery .gallery_cover span{
+.galleries .gallery_cover img, .galleries .gallery_cover span{
     display: block;
 }
-.box-gallery .gallery_cover span{
+.galleries .gallery_cover span{
     text-align: center;
     padding-top:6px;
 }
+.galleries .center{
+    text-align: center;
+}
+.galleries .album_description{
+    padding: 10px;
+    text-align: left;
+}
 
+/* Gallery page */
+
+.gallery .gallery_photo {
+    display: inline-block;
+}
 .gallery .gallery_photo img, .gallery .gallery_photo span{
     display: block;
 }
@@ -40,12 +37,14 @@
     text-align: center;
     padding-top:6px;
 }
+.gallery .center{
+    text-align: center;
+}
 .gallery .album_description{
     padding: 10px;
     text-align: left;
 }
 
-/* Gallery page */
 .limiter{
     display: block;
     height: 30px;
@@ -57,4 +56,30 @@
 }
 .album_link{
     text-decoration: none;
+}
+.thumbnail>span{
+    text-decoration: none;
+}
+.thumbnail>img {
+    margin-right: auto;
+    margin-left: auto;
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+.thumbnail{
+    outline: none;
+    display: block;
+    padding: 4px;
+    margin-bottom: 20px;
+    line-height: 1.42857143;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    color:#38B0E3;
+    border-radius: 4px;
+    text-decoration: none;
+}
+a.thumbnail.active, a.thumbnail:focus, a.thumbnail:hover {
+    border-color: #337ab7;
+    color:#23527c;
 }

@@ -5,24 +5,36 @@
 class ControllerCommonSeoGallery extends Controller
 {
     private $cache_data = null;
+    private $current_store_id = 0;
     public function __construct($registry)
     {
         parent::__construct($registry);
-        $this->cache_data = $this->cache->get('seo_pro_gallery');
+        $this->current_store_id = $this->config->get('config_store_id');
+        $cache_name = 'seo_pro_gallery.' . $this->current_store_id;
+        $this->cache_data = $this->cache->get($cache_name);
         if (!$this->cache_data) {
-            $query            = $this->db->query("SELECT LOWER(`keyword`) as 'keyword', `query` FROM " . DB_PREFIX . "url_alias_gallery");
+            $query            = $this->db->query("SELECT LOWER(`keyword`) as 'keyword', `query` FROM " . DB_PREFIX . "url_alias_gallery WHERE store_id = " . $this->current_store_id);
             $this->cache_data = array();
             foreach ($query->rows as $row) {
                 $this->cache_data['keywords'][$row['keyword']] = $row['query'];
                 $this->cache_data['queries'][$row['query']]    = $row['keyword'];
             }
-            $this->cache->set('seo_pro_gallery', $this->cache_data);
+            
+            $query            = $this->db->query("SELECT LOWER(`keyword`) as 'keyword', `query` FROM " . DB_PREFIX . "url_alias_gallery WHERE query LIKE '%album_id=%'");
+            foreach ($query->rows as $row) {
+                $this->cache_data['keywords'][$row['keyword']] = $row['query'];
+                $this->cache_data['queries'][$row['query']]    = $row['keyword'];
+            }
+
+            $this->cache->set($cache_name, $this->cache_data);
         }
     }
     public function index()
     {
         if ($this->config->get('config_seo_url')) {
             $this->url->addRewrite($this);
+        }else{
+            return;
         }
         
         if (isset($_GET['_route_']))
@@ -162,7 +174,8 @@ class ControllerCommonSeoGallery extends Controller
             foreach ($data as $key => $value) {
                 switch ($key) {
                     case 'album_id':
-                        if ($this->config->get('config_galleries_include_seo_path')) {
+                        $config_gallery_galleries_include_seo_path = $this->config->get('config_gallery_galleries_include_seo_path');
+                        if ($config_gallery_galleries_include_seo_path[$this->current_store_id]) {
                             $queries[] = 'gallery/gallery';
                         }
                         $queries[] = $key . '=' . $value;

@@ -3,7 +3,7 @@
 * @author Shashakhmetov Talgat <talgatks@gmail.com>
 */
 // Heading
-$_['text_gallery_list']     = 'Galleries list';
+$_['text_gallery_list']     = 'Galleries';
 
 //limit & pagination
 $_['text_limit']     = 'Limit images per page:';

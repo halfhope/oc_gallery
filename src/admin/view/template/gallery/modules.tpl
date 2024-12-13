@@ -21,20 +21,14 @@
     </div>
     <div class="content">
       <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form">
-      <!-- hook -->
-      <input type="hidden" name="gallery_module[0][layout_id]" value="<?php echo $config_gallery_module_hook_layout_id ?>">
-      <input type="hidden" name="gallery_module[0][module_type]" value="2">
-      <input type="hidden" name="gallery_module[0][position]" value="content_top">
-      <input type="hidden" name="gallery_module[0][status]" value="1">
-      <input type="hidden" name="gallery_module[0][sort_order]" value="0">
-      <!-- /hook -->
-
         <div id="tabs" class="vtabs">
         <?php $module_row = 1; ?>
           <?php foreach ($modules as $module): ?>
             <a href="#tab_module_<?php echo $module_row; ?>" id="a_tab_module_<?php echo $module_row; ?>" class="tab_btn">
               <?php echo $module['name'] ?>
+              <?php if ((int)$module['module_type'] !== 2): ?>
               <img src="view/image/delete.png" onclick="$('#tabs a.tab_btn:last').trigger('click');$('#tab_module_<?php echo $module_row; ?>, #a_tab_module_<?php echo $module_row; ?>').remove(); return false;">
+              <?php endif ?>
             </a>
             <?php $module_row++; ?>
           <?php endforeach ?>
@@ -45,6 +39,7 @@
         <?php $module_row = 1; ?>
         <div id="module_wrapper">
         <?php foreach ($modules as $module) { ?>
+        <?php if ((int)$module['module_type'] !== 2): ?>
         <div id="tab_module_<?php echo $module_row; ?>" class="vtabs-content">
           <table class="form">
               <tr class="s_img1">
@@ -150,7 +145,12 @@
               </tr>
               <tr class="s_img2 s_img2<?php echo $module_row ?> show_cover_changer<?php echo $module_row ?> show_album_galleries_link_changer<?php echo $module_row ?>">
                 <td><span class="required">* &nbsp;</span><?php echo $entry_show_album_text; ?></td>
-                <td><input style="width:500px;" type="text" name="gallery_module[<?php echo $module_row ?>][album_galleries_link_text]" value="<?php echo $module['album_galleries_link_text']; ?>" /></td>
+                <td>
+                <?php foreach ($languages as $language): ?>
+                  <input type="text" name="gallery_module[<?php echo $module_row ?>][album_galleries_link_text][<?php echo $language['language_id'] ?>]" value="<?php echo $module['album_galleries_link_text'][$language['language_id']]; ?>" size="28"/><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br>
+                
+                  <?php endforeach ?>
+                </td>
               </tr>
               <tr class="s_img3 s_img3<?php echo $module_row ?>">
                 <td><span class="required">* &nbsp;</span><?php echo $entry_photo_album_list ?></td>
@@ -221,8 +221,79 @@
               </tr>
               <tr class="s_img3 show_album_link_changer<?php echo $module_row ?>">
                   <td><span class="required">* &nbsp;</span><?php echo $entry_show_album_text; ?></td>
-                  <td><input style="width:500px;" type="text" name="gallery_module[<?php echo $module_row ?>][album_link_text]" value="<?php echo $module['album_link_text']; ?>" /></td>
+                  <td>
+                  <?php foreach ($languages as $language): ?>
+                  <input type="text" name="gallery_module[<?php echo $module_row ?>][album_link_text][<?php echo $language['language_id'] ?>]" value="<?php echo $module['album_link_text'][$language['language_id']]; ?>" size="28"/><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br>
+                  <?php endforeach ?>
+
+                  </td>
               </tr>
+              <!-- bootstrap -->
+              <tr class="s_img4">
+                <td><?php echo $entry_number_of_columns_xs ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_xs_help); ?></td>
+                <td>
+                  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                    <label class="radio-inline">
+                    <?php if ($module['number_of_columns_xs'] == $key): ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_xs]" value="<?php echo $key ?>" checked="checked" />
+                        <?php echo $value; ?>
+                    <?php else: ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_xs]" value="<?php echo $key ?>" />
+                        <?php echo $value; ?>
+                    <?php endif ?>
+                      </label>
+                  <?php endforeach ?>
+                </td>
+              </tr>
+              <tr class="s_img4">
+                <td><?php echo $entry_number_of_columns_sm ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_sm_help); ?></td>
+                <td>
+                  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                    <label class="radio-inline">
+                    <?php if ($module['number_of_columns_sm'] == $key): ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_sm]" value="<?php echo $key ?>" checked="checked" />
+                        <?php echo $value; ?>
+                    <?php else: ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_sm]" value="<?php echo $key ?>" />
+                        <?php echo $value; ?>
+                    <?php endif ?>
+                      </label>
+                  <?php endforeach ?>
+                </td>
+              </tr>
+              <tr class="s_img4">
+                <td><?php echo $entry_number_of_columns_md ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_md_help); ?></td>
+                <td>
+                  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                    <label class="radio-inline">
+                    <?php if ($module['number_of_columns_md'] == $key): ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_md]" value="<?php echo $key ?>" checked="checked" />
+                        <?php echo $value; ?>
+                    <?php else: ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_md]" value="<?php echo $key ?>" />
+                        <?php echo $value; ?>
+                    <?php endif ?>
+                      </label>
+                  <?php endforeach ?>
+                </td>
+              </tr>
+              <tr class="s_img4">
+                <td><?php echo $entry_number_of_columns_lg ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_lg_help); ?></td>
+                <td>
+                  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+                    <label class="radio-inline">
+                    <?php if ($module['number_of_columns_lg'] == $key): ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_lg]" value="<?php echo $key ?>" checked="checked" />
+                        <?php echo $value; ?>
+                    <?php else: ?>
+                      <input type="radio" name="gallery_module[<?php echo $module_row ?>][number_of_columns_lg]" value="<?php echo $key ?>" />
+                        <?php echo $value; ?>
+                    <?php endif ?>
+                      </label>
+                  <?php endforeach ?>
+                </td>
+              </tr>
+              <!-- layout -->
               <tr class="s_img1">
                 <td><?php echo $entry_layout; ?></td>
                 <td><select name="gallery_module[<?php echo $module_row; ?>][layout_id]" class="category-product-changer" data-id="<?php echo $module_row; ?>">
@@ -235,44 +306,44 @@
                   <?php } ?>
                 </select></td>
               </tr>
-              <!-- category -->
-              <tr class="s_img1 show_on_category<?php echo $module_row; ?>">
-                <td><?php echo $entry_module_category ?></td>
-                <td><div class="scrollbox"  style="width:500px;">
-                  <?php $class = 'odd'; ?>
-                  <?php foreach ($categories as $category) { ?>
-                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
-                  <div class="<?php echo $class; ?>">
-                    <?php if (in_array($category['category_id'], $module['album_show_on_categories'])) { ?>
-                    <input type="checkbox" name="gallery_module[<?php echo $module_row; ?>][album_show_on_categories][]" id="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>" value="<?php echo $category['category_id']; ?>" checked="checked" />
-                    <label for="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>"><?php echo $category['name']; ?></label>
-                    <?php } else { ?>
-                    <input type="checkbox" name="gallery_module[<?php echo $module_row; ?>][album_show_on_categories][]" id="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>" value="<?php echo $category['category_id']; ?>" />
-                    <label for="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>"><?php echo $category['name']; ?></label>
-                    <?php } ?>
-                  </div>
+            <!-- category -->
+            <tr class="s_img1 show_on_category<?php echo $module_row; ?>">
+              <td><?php echo $entry_module_category ?></td>
+              <td><div class="scrollbox"  style="width:500px;">
+                <?php $class = 'odd'; ?>
+                <?php foreach ($categories as $category) { ?>
+                <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                <div class="<?php echo $class; ?>">
+                  <?php if (in_array($category['category_id'], $module['album_show_on_categories'])) { ?>
+                  <input type="checkbox" name="gallery_module[<?php echo $module_row; ?>][album_show_on_categories][]" id="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>" value="<?php echo $category['category_id']; ?>" checked="checked" />
+                  <label for="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>"><?php echo $category['name']; ?></label>
+                  <?php } else { ?>
+                  <input type="checkbox" name="gallery_module[<?php echo $module_row; ?>][album_show_on_categories][]" id="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>" value="<?php echo $category['category_id']; ?>" />
+                  <label for="<?php echo $module_row; ?>cat<?php echo $category['category_id'] ?>"><?php echo $category['name']; ?></label>
                   <?php } ?>
                 </div>
-                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
-              </tr>
-              <!-- /category -->
-              <!-- product -->
-              <tr class="s_img1 show_on_product<?php echo $module_row; ?>">
-                <td><?php echo $entry_module_product ?></td>
-                <td><input type="text" id="related<?php echo $module_row; ?>" class="album_show_on_products" data-id="<?php echo $module_row; ?>" value="" /></td>
-              </tr>
-              <tr class="s_img1 show_on_product<?php echo $module_row; ?>">
-              <td>&nbsp;</td>
-              <td><div id="<?php echo $module_row; ?>product-related" class="scrollbox">
-                  <?php $class = 'odd'; ?>
-                  <?php foreach ($module['album_show_on_products'] as $product) { ?>
-                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
-                  <div id="<?php echo $module_row; ?>album_show_on_products<?php echo $product['product_id']; ?>" class="<?php echo $class; ?>"> <?php echo $product['name']; ?><img src="view/image/delete.png" />
-                    <input type="hidden" name="gallery_module[<?php echo $module_row; ?>][album_show_on_products][]" value="<?php echo $product['product_id']; ?>" />
-                  </div>
-                  <?php } ?>
-                </div></td>
+                <?php } ?>
+              </div>
+              <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
             </tr>
+            <!-- /category -->
+            <!-- product -->
+            <tr class="s_img1 show_on_product<?php echo $module_row; ?>">
+              <td><?php echo $entry_module_product ?></td>
+              <td><input type="text" id="related<?php echo $module_row; ?>" class="album_show_on_products" data-id="<?php echo $module_row; ?>" value="" /></td>
+            </tr>
+            <tr class="s_img1 show_on_product<?php echo $module_row; ?>">
+            <td>&nbsp;</td>
+            <td><div id="<?php echo $module_row; ?>product-related" class="scrollbox">
+                <?php $class = 'odd'; ?>
+                <?php foreach ($module['album_show_on_products'] as $product) { ?>
+                <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                <div id="<?php echo $module_row; ?>album_show_on_products<?php echo $product['product_id']; ?>" class="<?php echo $class; ?>"> <?php echo $product['name']; ?><img src="view/image/delete.png" />
+                  <input type="hidden" name="gallery_module[<?php echo $module_row; ?>][album_show_on_products][]" value="<?php echo $product['product_id']; ?>" />
+                </div>
+                <?php } ?>
+              </div></td>
+          </tr>
               <!-- /product -->
               <tr class="s_img1">
                 <td><?php echo $entry_position; ?></td>
@@ -317,6 +388,21 @@
               </tr>
           </table>
         </div>
+        <?php else: ?>
+          <div id="tab_module_<?php echo $module_row; ?>" class="vtabs-content">
+            <div class="jumbotron">
+              <h1>SEO hook</h1>
+              <p><?php echo $text_seo_hook ?></p>
+            </div>
+      
+            <input type="hidden" name="gallery_module[0][layout_id]" value="<?php echo $config_gallery_module_hook_layout_id ?>">
+            <input type="hidden" name="gallery_module[0][module_type]" value="<?php echo $module['module_type']; ?>">
+            <input type="hidden" name="gallery_module[0][position]" value="<?php echo $module['position']; ?>">
+            <input type="hidden" name="gallery_module[0][status]" value="<?php echo $module['status']; ?>">
+            <input type="hidden" name="gallery_module[0][sort_order]" value="<?php echo $module['sort_order']; ?>">
+
+          </div>
+        <?php endif ?>
         <?php $module_row++; ?>
         <?php } ?>
         </div>
@@ -326,6 +412,7 @@
 </div>
 <script type="text/javascript"><!--
 var module_row = <?php echo $module_row; ?>;
+
 $(document).ready(function() {
   initForm();
 
@@ -518,7 +605,11 @@ function addModule() {
   html += '</tr>';
   html += '<tr class="s_img2 s_img2'+ module_row +' show_cover_changer'+ module_row +' show_album_galleries_link_changer'+ module_row +'">';
   html += '<td><span class="required">* &nbsp;</span><?php echo $entry_show_album_text; ?></td>';
-  html += '<td><input style="width:500px;" type="text" name="gallery_module['+ module_row +'][album_galleries_link_text]" value="<?php echo $text_show_galleries_text; ?>" /></td>';
+  html += '<td>';
+  <?php foreach ($languages as $key => $language): ?>
+  html += '<input type="text" name="gallery_module['+ module_row +'][album_galleries_link_text][<?php echo $language['language_id']; ?>]" value="<?php echo $text_show_galleries_text; ?>" size="28"/><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br />';
+  <?php endforeach ?>
+  html += '</td>';
   html += '</tr>';
   html += '<tr class="s_img3 s_img3'+ module_row +'">';
   html += '<td><span class="required">* &nbsp;</span><?php echo $entry_photo_album_list ?></td>';
@@ -573,8 +664,78 @@ function addModule() {
   html += '</tr>';
   html += '<tr class="s_img3 show_album_link_changer'+module_row+' s_img3'+module_row+'">';
   html += '<td><span class="required">* &nbsp;</span><?php echo $entry_show_album_text; ?></td>';
-  html += '<td><input style="width:500px;" type="text" name="gallery_module['+ module_row +'][album_link_text]" value="<?php echo $text_show_album_text ?>" /></td>';
+  html += '<td>';
+  <?php foreach ($languages as $key => $language): ?>
+  html += '<input type="text" name="gallery_module['+ module_row +'][album_link_text][<?php echo $language['language_id']; ?>]" value="<?php echo $text_show_album_text ?>" size="28" /><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" style="margin: 0 14px 0 -24px;" /><br />';
+  <?php endforeach ?>
+  html += '</td>';
   html += '</tr>';
+  //bootstrap
+  html += ' <tr class="s_img4">';
+  html += ' <td><?php echo $entry_number_of_columns_xs ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_xs_help); ?></td>';
+  html += ' <td>';
+  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+  html += ' <label class="radio-inline">';
+  <?php if ($key == 1): ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_xs]" value="<?php echo $key ?>" checked="checked" />';
+  html += '<?php echo $value; ?>';
+  <?php else: ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_xs]" value="<?php echo $key ?>" />';
+  html += '<?php echo $value; ?>';
+  <?php endif ?>
+  html += '</label>';
+  <?php endforeach ?>
+  html += '</td>';
+  html += '</tr>';
+  html += ' <tr class="s_img4">';
+  html += ' <td><?php echo $entry_number_of_columns_sm ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_sm_help); ?></td>';
+  html += ' <td>';
+  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+  html += ' <label class="radio-inline">';
+  <?php if ($key == 2): ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_sm]" value="<?php echo $key ?>" checked="checked" />';
+  html += '<?php echo $value; ?>';
+  <?php else: ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_sm]" value="<?php echo $key ?>" />';
+  html += '<?php echo $value; ?>';
+  <?php endif ?>
+  html += '</label>';
+  <?php endforeach ?>
+  html += '</td>';
+  html += '</tr>';
+  html += ' <tr class="s_img4">';
+  html += ' <td><?php echo $entry_number_of_columns_md ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_md_help); ?></td>';
+  html += ' <td>';
+  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+  html += ' <label class="radio-inline">';
+  <?php if ($key == 4): ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_md]" value="<?php echo $key ?>" checked="checked" />';
+  html += '<?php echo $value; ?>';
+  <?php else: ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_md]" value="<?php echo $key ?>" />';
+  html += '<?php echo $value; ?>';
+  <?php endif ?>
+  html += '</label>';
+  <?php endforeach ?>
+  html += '</td>';
+  html += '</tr>';
+  html += ' <tr class="s_img4">';
+  html += ' <td><?php echo $entry_number_of_columns_lg ?><?php echo sprintf('<span class="help">%s</span>', $entry_number_of_columns_lg_help); ?></td>';
+  html += ' <td>';
+  <?php foreach ($entry_number_of_columns_values as $key => $value): ?>
+  html += ' <label class="radio-inline">';
+  <?php if ($key == 4): ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_lg]" value="<?php echo $key ?>" checked="checked" />';
+  html += '<?php echo $value; ?>';
+  <?php else: ?>
+  html += ' <input type="radio" name="gallery_module['+module_row+'][number_of_columns_lg]" value="<?php echo $key ?>" />';
+  html += '<?php echo $value; ?>';
+  <?php endif ?>
+  html += '</label>';
+  <?php endforeach ?>
+  html += '</td>';
+  html += '</tr>';
+  // position
   html += '<tr class="s_img1">';
   html += '<td><?php echo $entry_layout; ?></td>';
   html += '<td><select name="gallery_module['+ module_row +'][layout_id]" class="category-product-changer" data-id="'+ module_row +'">';

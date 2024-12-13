@@ -23,7 +23,7 @@
   <?php endif ?>
   <div class="content">
   <div class="gallery">
-    <script>
+    <script>  
       $(document).ready(function() {
         <?php if ($album['album_data']['use_lazyload']): ?>
           isMobDevice = (/iphone|ipad|Android|webOS|iPod|BlackBerry|Windows Phone|ZuneWP7/gi).test(navigator.appVersion);
@@ -46,6 +46,9 @@
             case 2:
              echo "$('a.".$no_conflict."fancybox".$album['album_id']."').fancybox({openEffect:'none',closeEffect:'none'});";
             break;
+            case 3:
+              echo "$('.gallery').magnificPopup({type:'image',delegate: 'a',gallery: {enabled:true}});";
+            break;
           }
         ?>
       });
@@ -53,12 +56,16 @@
     <?php if (isset($album['album_description'])): ?>
       <div class="album_description"><?php echo $album['album_description'] ?></div>
     <?php endif ?>
-      <?php foreach ($album['images'] as $img_key => $image): ?>
-        <a class="transition gallery_photo <?php echo $no_conflict; ?><?php echo $album['js_lib_type_text'] ?><?php echo $album['album_id'] ?>"  rel="<?php echo $no_conflict; ?>group<?php echo $album['album_id'] ?>" href="<?php echo $image['popup'] ?>" <?php echo (($album['album_data']['js_lib_type'] == 1)? 'data-lightbox="'.$no_conflict.$album['album_id'].'" data-title="'.$image['title'].'" ' : ''); ?>title="<?php echo $image['title'] ?>">
-          <img <?php if ($album['album_data']['use_lazyload']){echo 'class="lazy" src="'.$album['album_data']['lazyload_image'].'" data-original';}else{echo 'src';} ?>="<?php echo $image['thumb'] ?>" width="<?php echo $album['album_data']['thumb_width'] ?>" height="<?php echo $album['album_data']['thumb_height'] ?>" alt="<?php echo $image['title'] ?>" />
-          <span><?php echo $image['title'] ?></span>
-        </a>
-      <?php endforeach ?>
+      <div class="center">
+        <?php foreach ($album['images'] as $img_key => $image): ?>
+          <div class="<?php echo $album['bootstrap_grid']; ?> gallery_photo">
+            <a class="transition <?php echo $no_conflict; ?><?php echo $album['js_lib_type_text'] ?><?php echo $album['album_id'] ?> thumbnail"  rel="<?php echo $no_conflict; ?>group<?php echo $album['album_id'] ?>" href="<?php echo $image['popup'] ?>" <?php echo (($album['album_data']['js_lib_type'] == 1)? 'data-lightbox="'.$no_conflict.$album['album_id'].'" data-title="'.$image['title'].'" ' : ''); ?>title="<?php echo $image['title'] ?>">
+              <img <?php if ($album['album_data']['use_lazyload']){echo 'class="lazy" src="'.$album['album_data']['lazyload_image'].'" data-original';}else{echo 'src';} ?>="<?php echo $image['thumb'] ?>" width="<?php echo $album['album_data']['thumb_width'] ?>" height="<?php echo $album['album_data']['thumb_height'] ?>" alt="<?php echo $image['title'] ?>" />
+              <span><?php echo $image['title'] ?></span>
+            </a>
+          </div>  
+        <?php endforeach ?>
+      </div>
     </div>
   </div>
 <?php if ($show_pagination): ?>
